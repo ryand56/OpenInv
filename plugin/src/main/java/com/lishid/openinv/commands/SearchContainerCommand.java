@@ -16,11 +16,9 @@
 
 package com.lishid.openinv.commands;
 
-import com.lishid.openinv.OpenInv;
 import com.lishid.openinv.util.TabCompleter;
+import com.lishid.openinv.util.lang.LanguageManager;
 import com.lishid.openinv.util.lang.Replacement;
-import java.util.Collections;
-import java.util.List;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -30,23 +28,30 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Command for searching containers in a radius of chunks.
  */
 public class SearchContainerCommand implements TabExecutor {
 
-    private final OpenInv plugin;
+    private final @NotNull Plugin plugin;
+    private final @NotNull LanguageManager lang;
 
-    public SearchContainerCommand(OpenInv plugin) {
+    public SearchContainerCommand(@NotNull Plugin plugin, @NotNull LanguageManager lang) {
         this.plugin = plugin;
+        this.lang = lang;
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player senderPlayer)) {
-            plugin.sendMessage(sender, "messages.error.consoleUnsupported");
+            lang.sendMessage(sender, "messages.error.consoleUnsupported");
             return true;
         }
 
@@ -55,10 +60,10 @@ public class SearchContainerCommand implements TabExecutor {
             return false;
         }
 
-        Material material = Material.getMaterial(args[0].toUpperCase());
+        Material material = Material.matchMaterial(args[0]);
 
         if (material == null) {
-            plugin.sendMessage(
+            lang.sendMessage(
                     sender,
                     "messages.error.invalidMaterial",
                     new Replacement("%target%", args[0]));
@@ -97,7 +102,7 @@ public class SearchContainerCommand implements TabExecutor {
                     if (!holder.getInventory().contains(material)) {
                         continue;
                     }
-                    locations.append(holder.getInventory().getType().name().toLowerCase()).append(" (")
+                    locations.append(holder.getInventory().getType().name().toLowerCase(Locale.ENGLISH)).append(" (")
                             .append(tileEntity.getX()).append(',').append(tileEntity.getY()).append(',')
                             .append(tileEntity.getZ()).append("), ");
                 }
@@ -108,14 +113,14 @@ public class SearchContainerCommand implements TabExecutor {
         if (!locations.isEmpty()) {
             locations.delete(locations.length() - 2, locations.length());
         } else {
-            plugin.sendMessage(
+            lang.sendMessage(
                     sender,
                     "messages.info.container.noMatches",
                     new Replacement("%target%", material.name()));
             return true;
         }
 
-        plugin.sendMessage(
+        lang.sendMessage(
                 sender,
                 "messages.info.container.matches",
                 new Replacement("%target%", material.name()),

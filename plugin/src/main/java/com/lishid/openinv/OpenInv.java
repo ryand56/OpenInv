@@ -25,18 +25,16 @@ import com.lishid.openinv.commands.OpenInvCommand;
 import com.lishid.openinv.commands.SearchContainerCommand;
 import com.lishid.openinv.commands.SearchEnchantCommand;
 import com.lishid.openinv.commands.SearchInvCommand;
-import com.lishid.openinv.event.OpenPlayerSaveEvent;
+import com.lishid.openinv.event.OpenEvents;
 import com.lishid.openinv.internal.IAnySilentContainer;
 import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.internal.ISpecialInventory;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
 import com.lishid.openinv.util.ConfigUpdater;
+import com.lishid.openinv.util.InternalAccessor;
 import com.lishid.openinv.util.Permissions;
 import com.lishid.openinv.util.StringMetric;
 import com.lishid.openinv.util.lang.LanguageManager;
-import com.lishid.openinv.util.lang.Replacement;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -87,7 +85,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
         super.reloadConfig();
         this.offlineHandler = disableOfflineAccess() ? OfflineHandler.REMOVE_AND_CLOSE : OfflineHandler.REQUIRE_PERMISSIONS;
         if (this.accessor != null && this.accessor.isSupported()) {
-            this.accessor.reload();
+            this.accessor.reload(this.getConfig());
         }
     }
 
@@ -130,12 +128,8 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
         // Save default configuration if not present.
         this.saveDefaultConfig();
 
-        // Get plugin manager
-        PluginManager pm = this.getServer().getPluginManager();
-
-        this.accessor = new InternalAccessor(this);
-
         this.languageManager = new LanguageManager(this, "en_us");
+        this.accessor = new InternalAccessor(getLogger(), languageManager);
 
         try {
             Class.forName("org.bukkit.entity.Player$Spigot");
@@ -151,20 +145,22 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
             // Update existing configuration. May require internal access.
             new ConfigUpdater(this).checkForUpdates();
 
+            // Get plugin manager
+            PluginManager pm = this.getServer().getPluginManager();
             // Register listeners
             if (BukkitVersions.MINECRAFT.lessThan(Version.of(1, 21))) {
                 pm.registerEvents(new LegacyInventoryListener(this), this);
             } else {
-                pm.registerEvents(new PlayerListener(this), this);
+                pm.registerEvents(new PlayerListener(this, languageManager), this);
             }
             pm.registerEvents(new InventoryListener(this), this);
 
             // Register commands to their executors
-            this.setCommandExecutor(new OpenInvCommand(this), "openinv", "openender");
-            this.setCommandExecutor(new SearchContainerCommand(this), "searchcontainer");
-            this.setCommandExecutor(new SearchInvCommand(this), "searchinv", "searchender");
-            this.setCommandExecutor(new SearchEnchantCommand(this), "searchenchant");
-            this.setCommandExecutor(new ContainerSettingCommand(this), "silentcontainer", "anycontainer");
+            this.setCommandExecutor(new OpenInvCommand(this, languageManager), "openinv", "openender");
+            this.setCommandExecutor(new SearchContainerCommand(this, languageManager), "searchcontainer");
+            this.setCommandExecutor(new SearchInvCommand(languageManager), "searchinv", "searchender");
+            this.setCommandExecutor(new SearchEnchantCommand(languageManager), "searchenchant");
+            this.setCommandExecutor(new ContainerSettingCommand(this, languageManager), "silentcontainer", "anycontainer");
 
         } else {
             this.sendVersionError(this.getLogger()::warning);
@@ -182,9 +178,15 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
     }
 
     private void sendVersionError(@NotNull Consumer<String> messageMethod) {
-        if (!this.accessor.isSupported()) {
-            messageMethod.accept("Your server version (" + this.accessor.getVersion() + ") is not supported.");
-            messageMethod.accept("Please download the correct version of OpenInv here: " + this.accessor.getReleasesLink());
+        if (!accessor.isSupported()) {
+            messageMethod.accept("Your server version (" + accessor.getVersion() + ") is not supported.");
+            messageMethod.accept("Please download the correct version of OpenInv here: " + accessor.getReleasesLink());
+
+            // We check this property late so users can use jars that were remapped by Paper already.
+            if (Boolean.getBoolean("paper.disable-plugin-rewriting")) {
+                messageMethod.accept("OpenInv uses Spigot-mapped internals, but you have disabled plugin rewriting in Paper!");
+                messageMethod.accept("Please set system property 'paper.disable-plugin-rewriting' to false.");
+            }
         }
         if (!isSpigot) {
             messageMethod.accept("OpenInv requires that you use Spigot or a Spigot fork. Per the 1.14 update thread");
@@ -242,22 +244,20 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
     }
 
     @Override
-    public @NotNull ISpecialEnderChest getSpecialEnderChest(@NotNull final Player player, final boolean online)
-            throws InstantiationException {
+    public @NotNull ISpecialEnderChest getSpecialEnderChest(@NotNull final Player player, final boolean online) {
         UUID key = player.getUniqueId();
 
         if (this.enderChests.containsKey(key)) {
             return this.enderChests.get(key);
         }
 
-        ISpecialEnderChest inv = this.accessor.newSpecialEnderChest(player, online);
+        ISpecialEnderChest inv = this.accessor.newSpecialEnderChest(player);
         this.enderChests.put(key, inv);
         return inv;
     }
 
     @Override
-    public @NotNull ISpecialPlayerInventory getSpecialInventory(@NotNull final Player player, final boolean online)
-            throws InstantiationException {
+    public @NotNull ISpecialPlayerInventory getSpecialInventory(@NotNull final Player player, final boolean online) {
         UUID key = player.getUniqueId();
 
         if (this.inventories.containsKey(key)) {
@@ -436,61 +436,6 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
                                 && !Objects.equals(viewer.getWorld(), player.getWorld()));
     }
 
-    public @Nullable String getLocalizedMessage(@NotNull CommandSender sender, @NotNull String key) {
-        return this.languageManager.getValue(key, getLocale(sender));
-    }
-
-    public @Nullable String getLocalizedMessage(
-            @NotNull CommandSender sender,
-            @NotNull String key,
-            Replacement @NotNull ... replacements) {
-        return this.languageManager.getValue(key, getLocale(sender), replacements);
-    }
-
-    private @NotNull String getLocale(@NotNull CommandSender sender) {
-        if (sender instanceof Player) {
-            return ((Player) sender).getLocale();
-        } else {
-            return this.getConfig().getString("settings.locale", "en_us");
-        }
-    }
-
-    public void sendMessage(@NotNull CommandSender sender, @NotNull String key) {
-        String message = getLocalizedMessage(sender, key);
-
-        if (message != null && !message.isEmpty()) {
-            sender.sendMessage(message);
-        }
-    }
-
-    public void sendMessage(@NotNull CommandSender sender, @NotNull String key, Replacement @NotNull... replacements) {
-        String message = getLocalizedMessage(sender, key, replacements);
-
-        if (message != null && !message.isEmpty()) {
-            sender.sendMessage(message);
-        }
-    }
-
-    public void sendSystemMessage(@NotNull Player player, @NotNull String key) {
-        String message = getLocalizedMessage(player, key);
-
-        if (message == null) {
-            return;
-        }
-
-        int newline = message.indexOf('\n');
-        if (newline != -1) {
-            // No newlines in action bar chat.
-            message = message.substring(0, newline);
-        }
-
-        if (message.isEmpty()) {
-            return;
-        }
-
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(message));
-    }
-
     /**
      * Method for handling a Player going offline.
      *
@@ -562,10 +507,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
                 return;
             }
 
-            OpenPlayerSaveEvent event = new OpenPlayerSaveEvent(player, current);
-            getServer().getPluginManager().callEvent(event);
-
-            if (!event.isCancelled()) {
+            if (!OpenEvents.saveCancelled(player, current)) {
                 this.accessor.getPlayerDataManager().inject(player).saveData();
             }
         });
@@ -638,8 +580,8 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
                 inventory,
                 viewer ->
                         !Permissions.ACCESS_ONLINE.hasPermission(viewer)
-                                || !Permissions.ACCESS_CROSSWORLD.hasPermission(viewer)
-                                && !Objects.equals(viewer.getWorld(), inventory.getPlayer().getWorld()));
+                                || (!Permissions.ACCESS_CROSSWORLD.hasPermission(viewer)
+                                        && !Objects.equals(viewer.getWorld(), inventory.getPlayer().getWorld())));
     }
 
     static void ejectViewers(@NotNull ISpecialInventory inventory, @NotNull Predicate<@NotNull HumanEntity> predicate) {

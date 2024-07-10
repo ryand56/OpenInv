@@ -52,17 +52,6 @@ public interface IAnySilentContainer {
     void deactivateContainer(@NotNull Player player);
 
     /**
-     * @param player the player opening the container
-     * @param block  the {@link Block} of the container
-     * @return true if the container is blocked
-     * @deprecated use {@link #isAnyContainerNeeded(Block)}
-     */
-    @Deprecated(forRemoval = true, since = "4.1.9")
-    default boolean isAnyContainerNeeded(@NotNull Player player, @NotNull Block block) {
-        return isAnyContainerNeeded(block);
-    }
-
-    /**
      * Check if the container at the given coordinates is blocked.
      *
      * @param block the {@link Block} of the container
@@ -99,9 +88,14 @@ public interface IAnySilentContainer {
             return false;
         }
 
-        int ordinal = (chest.getFacing().ordinal() + 4 + (chest.getType() == Chest.Type.RIGHT ? -1 : 1)) % 4;
-        BlockFace relativeFace = BlockFace.values()[ordinal];
-        org.bukkit.block.Block relative = block.getRelative(relativeFace);
+        BlockFace relativeFace = switch (chest.getFacing()) {
+            case NORTH -> chest.getType() == Chest.Type.RIGHT ? BlockFace.WEST : BlockFace.EAST;
+            case EAST -> chest.getType() == Chest.Type.RIGHT ? BlockFace.NORTH : BlockFace.SOUTH;
+            case SOUTH -> chest.getType() == Chest.Type.RIGHT ? BlockFace.EAST : BlockFace.WEST;
+            case WEST -> chest.getType() == Chest.Type.RIGHT ? BlockFace.SOUTH : BlockFace.NORTH;
+            default -> BlockFace.SELF;
+        };
+        Block relative = block.getRelative(relativeFace);
 
         if (relative.getType() != block.getType()) {
             return false;
@@ -118,18 +112,6 @@ public interface IAnySilentContainer {
         }
 
         return isChestBlocked(relative);
-    }
-
-    /**
-     * Check if a {@link ShulkerBox} cannot be opened under ordinary circumstances.
-     *
-     * @deprecated Use {@link #isShulkerBlocked(Block)}.
-     * @param shulkerBox the shulker box container
-     * @return whether the container is blocked
-     */
-    @Deprecated(since = "4.4.4", forRemoval = true)
-    default boolean isShulkerBlocked(@NotNull ShulkerBox shulkerBox) {
-        return isShulkerBlocked(shulkerBox.getBlock());
     }
 
     /**
@@ -176,7 +158,7 @@ public interface IAnySilentContainer {
      * @return true if the type is a supported container
      */
     default boolean isAnySilentContainer(@NotNull BlockState blockState) {
-        return blockState instanceof InventoryHolder holder && isAnySilentContainer(holder)
+        return (blockState instanceof InventoryHolder holder && isAnySilentContainer(holder))
                 || blockState instanceof EnderChest;
     }
 

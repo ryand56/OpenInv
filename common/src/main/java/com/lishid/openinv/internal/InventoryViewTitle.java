@@ -1,6 +1,6 @@
 package com.lishid.openinv.internal;
 
-import com.lishid.openinv.OpenInv;
+import com.lishid.openinv.util.lang.LanguageManager;
 import com.lishid.openinv.util.lang.Replacement;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -22,11 +22,13 @@ public enum InventoryViewTitle {
     this.defaultSuffix = defaultSuffix;
   }
 
-  public @NotNull String getTitle(@NotNull Player viewer, @NotNull ISpecialInventory inventory) {
+  public @NotNull String getTitle(
+      @NotNull LanguageManager lang,
+      @NotNull Player viewer,
+      @NotNull ISpecialInventory inventory) {
     HumanEntity owner = inventory.getPlayer();
 
-    String localTitle = OpenInv.getPlugin(OpenInv.class)
-        .getLocalizedMessage(
+    String localTitle = lang.getLocalizedMessage(
             viewer,
             localizationKey,
             new Replacement("%player%", owner.getName()));

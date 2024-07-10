@@ -30,8 +30,8 @@
   <name>OpenInvAdapter1_21_R1</name>
 
   <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.system>21</maven.compiler.system>
+    <maven.compiler.release>21</maven.compiler.release>
     <spigot.version>1.21-R0.1-SNAPSHOT</spigot.version>
   </properties>
 
@@ -51,10 +51,9 @@
     <dependency>
       <artifactId>openinvapi</artifactId>
       <groupId>com.lishid</groupId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
-      <artifactId>openinvplugincore</artifactId>
+      <artifactId>openinvcommon</artifactId>
       <groupId>com.lishid</groupId>
     </dependency>
     <dependency>
@@ -65,9 +64,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-shade-plugin</artifactId>
-      </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>

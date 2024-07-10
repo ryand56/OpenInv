@@ -14,13 +14,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.openinv.internal.v1_20_R3;
+package com.lishid.openinv.internal.v1_20_R4;
 
-import com.lishid.openinv.OpenInv;
-import com.lishid.openinv.internal.IPlayerDataManager;
 import com.lishid.openinv.internal.ISpecialInventory;
 import com.lishid.openinv.internal.InventoryViewTitle;
 import com.lishid.openinv.internal.OpenInventoryView;
+import com.lishid.openinv.util.lang.LanguageManager;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.nbt.CompoundTag;
@@ -41,14 +40,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_20_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R3.event.CraftEventFactory;
-import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftContainer;
+import org.bukkit.craftbukkit.v1_20_R4.CraftServer;
+import org.bukkit.craftbukkit.v1_20_R4.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R4.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R4.event.CraftEventFactory;
+import org.bukkit.craftbukkit.v1_20_R4.inventory.CraftContainer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +54,7 @@ import java.lang.reflect.Field;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-public class PlayerDataManager implements IPlayerDataManager {
+public class PlayerManager implements com.lishid.openinv.internal.PlayerManager {
 
     private static boolean paper;
 
@@ -69,13 +67,16 @@ public class PlayerDataManager implements IPlayerDataManager {
         }
     }
 
+    private final @NotNull Logger logger;
+    private final @NotNull LanguageManager lang;
     private @Nullable Field bukkitEntity;
 
-    public PlayerDataManager() {
+    public PlayerManager(@NotNull Logger logger, @NotNull LanguageManager lang) {
+        this.logger = logger;
+        this.lang = lang;
         try {
             bukkitEntity = Entity.class.getDeclaredField("bukkitEntity");
         } catch (NoSuchFieldException e) {
-            Logger logger = JavaPlugin.getPlugin(OpenInv.class).getLogger();
             logger.warning("Unable to obtain field to inject custom save process - certain player data may be lost when saving!");
             logger.log(java.util.logging.Level.WARNING, e.getMessage(), e);
             bukkitEntity = null;
@@ -156,7 +157,7 @@ public class PlayerDataManager implements IPlayerDataManager {
         try {
             injectPlayer(entity);
         } catch (IllegalAccessException e) {
-            JavaPlugin.getPlugin(OpenInv.class).getLogger().log(
+            logger.log(
                 java.util.logging.Level.WARNING,
                 e,
                 () -> "Unable to inject ServerPlayer, certain player data may be lost when saving!");
@@ -165,9 +166,9 @@ public class PlayerDataManager implements IPlayerDataManager {
         return entity;
     }
 
-    static boolean loadData(@NotNull ServerPlayer player) {
+    boolean loadData(@NotNull ServerPlayer player) {
         // See CraftPlayer#loadData
-        CompoundTag loadedData = player.server.getPlayerList().playerIo.load(player);
+        CompoundTag loadedData = player.server.getPlayerList().playerIo.load(player).orElse(null);
 
         if (loadedData == null) {
             // Exceptions with loading are logged by Mojang.
@@ -189,7 +190,7 @@ public class PlayerDataManager implements IPlayerDataManager {
         return true;
     }
 
-    private static void parseWorld(@NotNull ServerPlayer player, @NotNull CompoundTag loadedData) {
+    private void parseWorld(@NotNull ServerPlayer player, @NotNull CompoundTag loadedData) {
         // See PlayerList#placeNewPlayer
         World bukkitWorld;
         if (loadedData.contains("WorldUUIDMost") && loadedData.contains("WorldUUIDLeast")) {
@@ -201,7 +202,7 @@ public class PlayerDataManager implements IPlayerDataManager {
         } else {
             // Vanilla player data.
             DimensionType.parseLegacy(new Dynamic<>(NbtOps.INSTANCE, loadedData.get("Dimension")))
-                .resultOrPartial(JavaPlugin.getPlugin(OpenInv.class).getLogger()::warning)
+                .resultOrPartial(logger::warning)
                 .map(player.server::getLevel)
                 // If ServerLevel exists, set, otherwise move to spawn.
                 .ifPresentOrElse(player::setServerLevel, () -> player.spawnIn(null));
@@ -221,7 +222,7 @@ public class PlayerDataManager implements IPlayerDataManager {
 
         bukkitEntity.setAccessible(true);
 
-        bukkitEntity.set(player, new OpenPlayer(player.server.server, player));
+        bukkitEntity.set(player, new OpenPlayer(player.server.server, player, this));
     }
 
     @Override
@@ -234,7 +235,7 @@ public class PlayerDataManager implements IPlayerDataManager {
             injectPlayer(nmsPlayer);
             return nmsPlayer.getBukkitEntity();
         } catch (IllegalAccessException e) {
-            JavaPlugin.getPlugin(OpenInv.class).getLogger().log(
+            logger.log(
                 java.util.logging.Level.WARNING,
                 e,
                 () -> "Unable to inject ServerPlayer, certain player data may be lost when saving!");
@@ -257,7 +258,7 @@ public class PlayerDataManager implements IPlayerDataManager {
             return player.openInventory(inventory.getBukkitInventory());
         }
 
-        InventoryView view = new OpenInventoryView(player, inventory, title.getTitle(player, inventory));
+        InventoryView view = new OpenInventoryView(player, inventory, title.getTitle(lang, player, inventory));
         AbstractContainerMenu container = new CraftContainer(view, nmsPlayer, nmsPlayer.nextContainerCounter()) {
             @Override
             public MenuType<?> getType() {

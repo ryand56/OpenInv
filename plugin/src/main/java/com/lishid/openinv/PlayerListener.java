@@ -16,7 +16,9 @@
 
 package com.lishid.openinv;
 
+import com.google.errorprone.annotations.Keep;
 import com.lishid.openinv.util.Permissions;
+import com.lishid.openinv.util.lang.LanguageManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
@@ -29,23 +31,35 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 
-record PlayerListener(OpenInv plugin) implements Listener {
+class PlayerListener implements Listener {
 
+    private final @NotNull OpenInv plugin;
+    private final @NotNull LanguageManager lang;
+
+  PlayerListener(@NotNull OpenInv plugin, @NotNull LanguageManager lang) {
+    this.plugin = plugin;
+    this.lang = lang;
+  }
+
+  @Keep
     @EventHandler(priority = EventPriority.LOWEST)
     private void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         plugin.setPlayerOnline(event.getPlayer());
     }
 
+    @Keep
     @EventHandler(priority = EventPriority.MONITOR)
     private void onPlayerQuit(@NotNull PlayerQuitEvent event) {
         plugin.setPlayerOffline(event.getPlayer());
     }
 
+    @Keep
     @EventHandler
     private void onWorldChange(@NotNull PlayerChangedWorldEvent event) {
         plugin.changeWorld(event.getPlayer());
     }
 
+    @Keep
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     private void onPlayerInteract(@NotNull PlayerInteractEvent event) {
 
@@ -74,11 +88,11 @@ record PlayerListener(OpenInv plugin) implements Listener {
         if (any || silent) {
             if (plugin.getAnySilentContainer().activateContainer(player, silent, event.getClickedBlock())) {
                 if (silent && needsAny) {
-                    plugin.sendSystemMessage(player, "messages.info.containerBlockedSilent");
+                    lang.sendSystemMessage(player, "messages.info.containerBlockedSilent");
                 } else if (needsAny) {
-                    plugin.sendSystemMessage(player, "messages.info.containerBlocked");
+                    lang.sendSystemMessage(player, "messages.info.containerBlocked");
                 } else if (silent) {
-                    plugin.sendSystemMessage(player, "messages.info.containerSilent");
+                    lang.sendSystemMessage(player, "messages.info.containerSilent");
                 }
             }
             event.setCancelled(true);
