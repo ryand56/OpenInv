@@ -1,7 +1,7 @@
-package com.lishid.openinv.internal.v1_21_R1.inventory;
+package com.lishid.openinv.internal.v1_21_R1.container;
 
 import com.google.common.base.Suppliers;
-import com.lishid.openinv.internal.v1_21_R1.inventory.slot.SlotPlaceholder;
+import com.lishid.openinv.internal.v1_21_R1.container.slot.SlotPlaceholder;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.world.inventory.AbstractContainerMenu;

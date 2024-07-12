@@ -1,4 +1,4 @@
-package com.lishid.openinv.internal.v1_21_R1.inventory;
+package com.lishid.openinv.internal.v1_21_R1.container;
 
 import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.internal.v1_21_R1.player.PlayerManager;

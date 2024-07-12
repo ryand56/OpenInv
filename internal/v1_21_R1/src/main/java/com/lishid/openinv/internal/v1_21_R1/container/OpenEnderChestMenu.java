@@ -1,6 +1,6 @@
-package com.lishid.openinv.internal.v1_21_R1.inventory;
+package com.lishid.openinv.internal.v1_21_R1.container;
 
-import com.lishid.openinv.internal.v1_21_R1.inventory.slot.SlotViewOnly;
+import com.lishid.openinv.internal.v1_21_R1.container.slot.SlotViewOnly;
 import com.lishid.openinv.util.Permissions;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;

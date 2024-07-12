@@ -1,4 +1,4 @@
-package com.lishid.openinv.internal.v1_21_R1.inventory;
+package com.lishid.openinv.internal.v1_21_R1.container;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;

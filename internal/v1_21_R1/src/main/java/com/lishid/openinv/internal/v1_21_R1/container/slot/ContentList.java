@@ -1,4 +1,4 @@
-package com.lishid.openinv.internal.v1_21_R1.inventory.slot;
+package com.lishid.openinv.internal.v1_21_R1.container.slot;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;

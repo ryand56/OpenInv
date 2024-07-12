@@ -1,6 +1,6 @@
-package com.lishid.openinv.internal.v1_21_R1.inventory.slot;
+package com.lishid.openinv.internal.v1_21_R1.container.slot;
 
-import com.lishid.openinv.internal.v1_21_R1.inventory.Placeholders;
+import com.lishid.openinv.internal.v1_21_R1.container.Placeholders;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;

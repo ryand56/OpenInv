@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.openinv.internal.v1_21_R1.inventory;
+package com.lishid.openinv.internal.v1_21_R1.container;
 
 import com.lishid.openinv.internal.IAnySilentContainer;
 import com.lishid.openinv.internal.v1_21_R1.player.PlayerManager;
