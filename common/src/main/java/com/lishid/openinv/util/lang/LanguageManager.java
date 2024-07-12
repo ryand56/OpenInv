@@ -50,6 +50,7 @@ import java.util.logging.Level;
 public class LanguageManager {
 
     private final Plugin plugin;
+    private final File folder;
     private final String defaultLocale;
     private final Map<String, YamlConfiguration> locales;
 
@@ -57,6 +58,17 @@ public class LanguageManager {
         this.plugin = plugin;
         this.defaultLocale = defaultLocale;
         this.locales = new HashMap<>();
+        this.folder = new File(plugin.getDataFolder(), "locale");
+
+        if (!folder.exists() && !folder.mkdirs()) {
+            plugin.getLogger().warning(() -> "Unable to create " + folder.getPath() + "! Languages may not be editable.");
+        }
+
+        reload();
+    }
+
+    public void reload() {
+        this.locales.clear();
         getOrLoadLocale(defaultLocale);
     }
 
@@ -66,57 +78,86 @@ public class LanguageManager {
             return loaded;
         }
 
-        File file = new File(plugin.getDataFolder(), locale + ".yml");
+        LangLocation lang = bestMatch(locale, null);
+
+        // If a parent was a better match, check if it is already loaded.
+        if (!locale.equals(lang.locale)) {
+            loaded = locales.get(lang.locale);
+            if (loaded != null) {
+                locales.put(locale, loaded);
+                return loaded;
+            }
+        }
 
         // Load locale config from disk and bundled locale defaults.
-        YamlConfiguration localeConfig = loadLocale(locale, file);
+        YamlConfiguration localeConfig = loadLocale(lang);
 
         // If the locale is not the default locale, also handle any missing translations from the default locale.
         if (!locale.equals(defaultLocale)) {
-            addTranslationFallthrough(locale, localeConfig, file);
+            addTranslationFallthrough(lang, localeConfig);
 
             if (plugin.getConfig().getBoolean("settings.secret.warn-about-guess-section", true)
                     && localeConfig.isConfigurationSection("guess")) {
                 // Warn that guess section exists. This should run once per language per server restart
                 // when accessed by a user to hint to server owners that they can make UX improvements.
-                plugin.getLogger().info(() -> "[LanguageManager] Missing translations from " + locale + ".yml! Check the guess section!");
+                plugin.getLogger().info(() -> "[LanguageManager] Missing translations from " + lang.locale + ".yml! Check the guess section!");
             }
         }
 
         locales.put(locale, localeConfig);
+        locales.put(lang.locale, localeConfig);
+
         return localeConfig;
     }
 
-    private @NotNull YamlConfiguration loadLocale(
-            @NotNull String locale,
-            @NotNull File file) {
-        // Load defaults from the plugin's bundled resources.
-        InputStream resourceStream = plugin.getResource("locale/" + locale + ".yml");
+    private @NotNull LangLocation bestMatch(@NotNull String locale, @Nullable LangLocation initial) {
+        File file = new File(folder, locale + ".yml");
+        InputStream bundled = plugin.getResource("locale/" + locale + ".yml");
+
+        if (file.exists() || bundled != null) {
+            return new LangLocation(locale, file, bundled);
+        }
+
+        if (initial == null) {
+            initial = new LangLocation(locale, file, null);
+        }
+
+        int lastSeparator = locale.lastIndexOf('_');
+
+        // Must be at least some content before separator.
+        if (lastSeparator < 1) {
+            return initial;
+        }
+
+        return bestMatch(locale.substring(0, lastSeparator), initial);
+    }
+
+    private @NotNull YamlConfiguration loadLocale(@NotNull LangLocation lang) {
         YamlConfiguration localeConfigDefaults;
-        if (resourceStream == null) {
+        if (lang.bundled == null) {
             localeConfigDefaults = new YamlConfiguration();
         } else {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(lang.bundled, StandardCharsets.UTF_8))) {
                 localeConfigDefaults = YamlConfiguration.loadConfiguration(reader);
             } catch (IOException e) {
-                plugin.getLogger().log(Level.WARNING, e, () -> "[LanguageManager] Unable to load resource " + locale + ".yml");
+                plugin.getLogger().log(Level.WARNING, e, () -> "[LanguageManager] Unable to load resource " + lang.locale + ".yml");
                 localeConfigDefaults = new YamlConfiguration();
             }
         }
 
-        if (!file.exists()) {
+        if (!lang.file.exists()) {
             // If the file does not exist on disk, save bundled defaults.
             try {
-                localeConfigDefaults.save(file);
+                localeConfigDefaults.save(lang.file);
             } catch (IOException e) {
-                plugin.getLogger().log(Level.WARNING, e, () -> "[LanguageManager] Unable to save resource " + locale + ".yml");
+                plugin.getLogger().log(Level.WARNING, e, () -> "[LanguageManager] Unable to save resource " + lang.locale + ".yml");
             }
             // Return loaded bundled locale.
             return localeConfigDefaults;
         }
 
         // If the file does exist on disk, load it.
-        YamlConfiguration localeConfig = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration localeConfig = YamlConfiguration.loadConfiguration(lang.file);
         // Check for missing translations from the bundled file.
         List<String> newKeys = getMissingKeys(localeConfigDefaults, localeConfig::isSet);
 
@@ -142,22 +183,19 @@ public class LanguageManager {
             localeConfig.set("guess", null);
         }
 
-        plugin.getLogger().info(() -> "[LanguageManager] Added new translation keys to " + locale + ".yml: " + String.join(", ", newKeys));
+        plugin.getLogger().info(() -> "[LanguageManager] Added new translation keys to " + lang.locale + ".yml: " + String.join(", ", newKeys));
 
         // Write new keys to disk.
         try {
-            localeConfig.save(file);
+            localeConfig.save(lang.file);
         } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, e, () -> "[LanguageManager] Unable to save resource " + locale + ".yml");
+            plugin.getLogger().log(Level.WARNING, e, () -> "[LanguageManager] Unable to save resource " + lang.locale + ".yml");
         }
 
         return localeConfig;
     }
 
-    private void addTranslationFallthrough(
-            @NotNull String locale,
-            @NotNull YamlConfiguration localeConfig,
-            @NotNull File file) {
+    private void addTranslationFallthrough(@NotNull LangLocation location, @NotNull YamlConfiguration localeConfig) {
         YamlConfiguration defaultLocaleConfig = locales.get(defaultLocale);
 
         // Get missing keys. Keys that already have a guess value are not new and don't need to trigger another write.
@@ -173,9 +211,9 @@ public class LanguageManager {
 
             // Write modified guess section to disk.
             try {
-                localeConfig.save(file);
+                localeConfig.save(location.file);
             } catch (IOException e) {
-                plugin.getLogger().log(Level.WARNING, e, () -> "[LanguageManager] Unable to save resource " + locale + ".yml");
+                plugin.getLogger().log(Level.WARNING, e, () -> "[LanguageManager] Unable to save resource " + location.locale + ".yml");
             }
         }
 
@@ -197,8 +235,8 @@ public class LanguageManager {
     }
 
     public @Nullable String getValue(@NotNull String key, @Nullable String locale) {
-        String value = getOrLoadLocale(locale == null ? defaultLocale : locale.toLowerCase(Locale.ROOT)).getString(key);
-        if (value == null || value.isEmpty()) {
+        String value = getOrLoadLocale(locale == null ? defaultLocale : locale.toLowerCase(Locale.ENGLISH)).getString(key);
+        if (value == null || value.isBlank()) {
             return null;
         }
 
@@ -275,5 +313,7 @@ public class LanguageManager {
 
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(message));
     }
+
+    private record LangLocation(@NotNull String locale, @NotNull File file, @Nullable InputStream bundled) {}
 
 }
