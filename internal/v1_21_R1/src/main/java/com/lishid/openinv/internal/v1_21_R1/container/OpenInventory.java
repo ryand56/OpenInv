@@ -1,6 +1,9 @@
 package com.lishid.openinv.internal.v1_21_R1.container;
 
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
+import com.lishid.openinv.internal.InternalOwned;
+import com.lishid.openinv.internal.v1_21_R1.container.bukkit.OpenPlayerInventory;
+import com.lishid.openinv.internal.v1_21_R1.container.menu.OpenInventoryMenu;
 import com.lishid.openinv.internal.v1_21_R1.player.PlayerManager;
 import com.lishid.openinv.internal.v1_21_R1.container.slot.Content;
 import com.lishid.openinv.internal.v1_21_R1.container.slot.ContentCrafting;
@@ -37,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OpenInventory implements Container, MenuProvider, ISpecialPlayerInventory {
+public class OpenInventory implements Container, MenuProvider, InternalOwned<ServerPlayer>, ISpecialPlayerInventory {
 
   private final List<Content> slots;
   private final int size;
@@ -203,10 +206,6 @@ public class OpenInventory implements Container, MenuProvider, ISpecialPlayerInv
     return slots.get(index).getSlotType();
   }
 
-  public ServerPlayer getOwnerHandle() {
-    return owner;
-  }
-
   public @NotNull Component getTitle(@Nullable ServerPlayer viewer) {
     MutableComponent component = Component.empty();
     // Prefix for use with custom bitmap image fonts.
@@ -228,6 +227,11 @@ public class OpenInventory implements Container, MenuProvider, ISpecialPlayerInv
         .append(Component.translatable("container.inventory"))
         .append(Component.translatableWithFallback("openinv.container.inventory.suffix", " - %s", owner.getName()));
     return component;
+  }
+
+  @Override
+  public ServerPlayer getOwnerHandle() {
+    return owner;
   }
 
   @Override

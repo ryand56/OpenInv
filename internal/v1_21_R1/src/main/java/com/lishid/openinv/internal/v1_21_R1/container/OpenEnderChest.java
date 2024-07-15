@@ -1,6 +1,8 @@
 package com.lishid.openinv.internal.v1_21_R1.container;
 
 import com.lishid.openinv.internal.ISpecialEnderChest;
+import com.lishid.openinv.internal.InternalOwned;
+import com.lishid.openinv.internal.v1_21_R1.container.menu.OpenEnderChestMenu;
 import com.lishid.openinv.internal.v1_21_R1.player.PlayerManager;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -25,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OpenEnderChest implements Container, StackedContentsCompatible, MenuProvider, ISpecialEnderChest {
+public class OpenEnderChest implements Container, StackedContentsCompatible, MenuProvider,
+    InternalOwned<ServerPlayer>, ISpecialEnderChest {
 
   private CraftInventory inventory;
   private @NotNull ServerPlayer owner;
@@ -38,6 +41,7 @@ public class OpenEnderChest implements Container, StackedContentsCompatible, Men
     this.items = owner.getEnderChestInventory().items;
   }
 
+  @Override
   public @NotNull ServerPlayer getOwnerHandle() {
     return owner;
   }

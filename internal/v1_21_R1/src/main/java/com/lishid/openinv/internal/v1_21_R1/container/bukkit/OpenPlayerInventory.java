@@ -1,6 +1,7 @@
-package com.lishid.openinv.internal.v1_21_R1.container;
+package com.lishid.openinv.internal.v1_21_R1.container.bukkit;
 
 import com.google.common.base.Preconditions;
+import com.lishid.openinv.internal.v1_21_R1.container.OpenInventory;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;

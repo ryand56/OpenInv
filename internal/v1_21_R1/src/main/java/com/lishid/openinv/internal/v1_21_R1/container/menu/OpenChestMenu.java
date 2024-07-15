@@ -1,13 +1,18 @@
-package com.lishid.openinv.internal.v1_21_R1.container;
+package com.lishid.openinv.internal.v1_21_R1.container.menu;
 
 import com.google.common.base.Suppliers;
+import com.lishid.openinv.internal.ISpecialInventory;
+import com.lishid.openinv.internal.InternalOwned;
+import com.lishid.openinv.internal.v1_21_R1.container.bukkit.OpenDummyInventory;
 import com.lishid.openinv.internal.v1_21_R1.container.slot.SlotPlaceholder;
 import com.lishid.openinv.internal.v1_21_R1.container.slot.SlotViewOnly;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerListener;
@@ -16,6 +21,10 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.bukkit.craftbukkit.v1_21_R1.inventory.CraftInventoryView;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,11 +35,17 @@ import java.util.function.Supplier;
 /**
  * An extension of {@link AbstractContainerMenu} that supports {@link SlotPlaceholder placeholders}.
  */
-public abstract class OpenContainerMenu extends AbstractContainerMenu {
+public abstract class OpenChestMenu<T extends Container & ISpecialInventory & InternalOwned<ServerPlayer>>
+    extends AbstractContainerMenu {
 
+  protected static final int BOTTOM_INVENTORY_SIZE = 36;
+
+  protected final T container;
   protected final ServerPlayer viewer;
   protected final boolean viewOnly;
   protected final boolean ownContainer;
+  protected final int topSize;
+  private CraftInventoryView bukkitEntity;
   // Syncher fields
   private @Nullable ContainerSynchronizer synchronizer;
   private final List<DataSlot> dataSlots = new ArrayList<>();
@@ -39,25 +54,142 @@ public abstract class OpenContainerMenu extends AbstractContainerMenu {
   private ItemStack remoteCarried = ItemStack.EMPTY;
   private boolean suppressRemoteUpdates;
 
-  protected OpenContainerMenu(@Nullable MenuType<?> containers, int containerCounter,ServerPlayer owner, ServerPlayer viewer) {
-    super(containers, containerCounter);
+  protected OpenChestMenu(MenuType<ChestMenu> type, int containerCounter, T container, ServerPlayer viewer) {
+    super(type, containerCounter);
+    this.container = container;
     this.viewer = viewer;
-    ownContainer = owner.equals(viewer);
+    ownContainer = container.getOwnerHandle().equals(viewer);
+    topSize = getTopSize(viewer);
     viewOnly = checkViewOnly();
+
+    preSlotSetup();
+
+    int upperRows = topSize / 9;
+    // View's upper inventory - our container
+    for (int row = 0; row < upperRows; ++row) {
+      for (int col = 0; col < 9; ++col) {
+        // x and y for client purposes, but hey, we're thorough here.
+        // Adapted from net.minecraft.world.inventory.ChestMenu
+        int x = 8 + col * 18;
+        int y = 18 + row * 18;
+        int index = row * 9 + col;
+
+        // Guard against weird inventory sizes.
+        if (index >= container.getContainerSize()) {
+          addSlot(new SlotViewOnly(container, index, x, y));
+          continue;
+        }
+
+        Slot slot = getUpperSlot(index, x, y);
+
+        addSlot(slot);
+      }
+    }
+
+    // View's lower inventory - viewer inventory
+    int playerInvPad = (upperRows - 4) * 18;
+    for (int row = 0; row < 3; ++row) {
+      for (int col = 0; col < 9; ++col) {
+        int x = 8 + col * 18;
+        int y = playerInvPad + row * 18 + 103;
+        addSlot(new Slot(viewer.getInventory(), row * 9 + col + 9, x, y));
+      }
+    }
+    // Hotbar
+    for (int col = 0; col < 9; ++col) {
+      int x = 8 + col * 18;
+      int y = playerInvPad + 161;
+      addSlot(new Slot(viewer.getInventory(), col, x, y));
+    }
+  }
+
+  public static @NotNull MenuType<ChestMenu> getChestMenuType(int inventorySize) {
+    inventorySize = ((int) Math.ceil(inventorySize / 9.0)) * 9;
+    return switch (inventorySize) {
+      case 9 -> MenuType.GENERIC_9x1;
+      case 18 -> MenuType.GENERIC_9x2;
+      case 27 -> MenuType.GENERIC_9x3;
+      case 36 -> MenuType.GENERIC_9x4;
+      case 45 -> MenuType.GENERIC_9x5;
+      case 54 -> MenuType.GENERIC_9x6;
+      default -> throw new IllegalArgumentException("Inventory size unsupported: " + inventorySize);
+    };
   }
 
   protected abstract boolean checkViewOnly();
 
-  static @NotNull MenuType<?> getContainers(int inventorySize) {
-      return switch (inventorySize) {
-          case 9 -> MenuType.GENERIC_9x1;
-          case 18 -> MenuType.GENERIC_9x2;
-          case 36 -> MenuType.GENERIC_9x4;
-          case 45 -> MenuType.GENERIC_9x5;
-          case 54 -> MenuType.GENERIC_9x6;
-          // Default to 27-slot inventory
-          default -> MenuType.GENERIC_9x3;
-      };
+  protected void preSlotSetup() {}
+
+  protected @NotNull Slot getUpperSlot(int index, int x, int y) {
+    if (viewOnly) {
+      return new SlotViewOnly(container, index, x, y);
+    }
+    return new Slot(container, index, x, y);
+  }
+
+
+  @Override
+  public final @NotNull CraftInventoryView getBukkitView() {
+    if (bukkitEntity == null) {
+      bukkitEntity = createBukkitEntity();
+    }
+
+    return bukkitEntity;
+  }
+
+  protected @NotNull CraftInventoryView createBukkitEntity() {
+    Inventory top;
+    if (viewOnly) {
+      top = new OpenDummyInventory(container);
+    } else {
+      top = container.getBukkitInventory();
+    }
+    return new CraftInventoryView(viewer.getBukkitEntity(), top, this) {
+      @Override
+      public @Nullable Inventory getInventory(int rawSlot) {
+        if (viewOnly) {
+          return null;
+        }
+        return super.getInventory(rawSlot);
+      }
+
+      @Override
+      public int convertSlot(int rawSlot) {
+        if (viewOnly) {
+          return InventoryView.OUTSIDE;
+        }
+        return super.convertSlot(rawSlot);
+      }
+
+      @Override
+      public @NotNull InventoryType.SlotType getSlotType(int slot) {
+        if (viewOnly) {
+          return InventoryType.SlotType.OUTSIDE;
+        }
+        return super.getSlotType(slot);
+      }
+    };
+  }
+
+  private int getTopSize(ServerPlayer viewer) {
+    MenuType<?> menuType = getType();
+    if (menuType == null) {
+      throw new IllegalStateException("MenuType cannot be null!");
+    } else if (menuType == MenuType.GENERIC_9x1) {
+      return 9;
+    } else if (menuType == MenuType.GENERIC_9x2) {
+      return 18;
+    } else if (menuType == MenuType.GENERIC_9x3) {
+      return 27;
+    } else if (menuType == MenuType.GENERIC_9x4) {
+      return 36;
+    } else if (menuType == MenuType.GENERIC_9x5) {
+      return 45;
+    } else if (menuType == MenuType.GENERIC_9x6) {
+      return 54;
+    }
+    // This is a bit gross, but allows us a safe fallthrough.
+    return menuType.create(-1, viewer.getInventory()).slots.size() - BOTTOM_INVENTORY_SIZE;
   }
 
   /**
@@ -153,18 +285,20 @@ public abstract class OpenContainerMenu extends AbstractContainerMenu {
   }
 
   @Override
+  public boolean stillValid(Player player) {
+    return true;
+  }
+
+  // Overrides from here on are purely to modify the sync process to send placeholder items.
+  @Override
   protected Slot addSlot(Slot slot) {
     slot.index = this.slots.size();
-    if (viewOnly && !(slot instanceof SlotViewOnly)) {
-      slot = SlotViewOnly.wrap(slot);
-    }
     this.slots.add(slot);
     this.lastSlots.add(ItemStack.EMPTY);
     this.remoteSlots.add(ItemStack.EMPTY);
     return slot;
   }
 
-  // Overrides from here on are purely to modify the sync process to send placeholder items.
   @Override
   protected DataSlot addDataSlot(DataSlot dataSlot) {
     this.dataSlots.add(dataSlot);

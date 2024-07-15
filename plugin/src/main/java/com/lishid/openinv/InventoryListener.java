@@ -17,9 +17,8 @@
 package com.lishid.openinv;
 
 import com.google.errorprone.annotations.Keep;
-import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.internal.ISpecialInventory;
-import com.lishid.openinv.internal.ISpecialPlayerInventory;
+import com.lishid.openinv.internal.ViewOnly;
 import com.lishid.openinv.util.InventoryAccess;
 import com.lishid.openinv.util.Permissions;
 import org.bukkit.GameMode;
@@ -35,8 +34,6 @@ import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
 
 /**
  * Listener for inventory-related events to prevent modification of inventories where not allowed.
@@ -100,34 +97,8 @@ record InventoryListener(OpenInv plugin) implements Listener {
         }
 
         Inventory inventory = event.getView().getTopInventory();
-        ISpecialInventory backing = InventoryAccess.getInventory(inventory);
-
-        // Not a special inventory.
-        if (backing == null) {
-            return;
-        }
-
-        Permissions editSelf;
-        Permissions editOther;
-        if (backing instanceof ISpecialEnderChest) {
-            editSelf = Permissions.ENDERCHEST_EDIT_SELF;
-            editOther = Permissions.ENDERCHEST_EDIT_OTHER;
-        } else if (backing instanceof ISpecialPlayerInventory) {
-            editSelf = Permissions.INVENTORY_EDIT_SELF;
-            editOther = Permissions.INVENTORY_EDIT_OTHER;
-        } else {
-            // Unknown implementation.
-            return;
-        }
-
-        if (Objects.equals(entity, backing.getPlayer())) {
-            if (!editSelf.hasPermission(entity)) {
-                event.setCancelled(true);
-            }
-        } else {
-            if (!editOther.hasPermission(entity)) {
-                event.setCancelled(true);
-            }
+        if (inventory instanceof ViewOnly) {
+            event.setCancelled(true);
         }
     }
 

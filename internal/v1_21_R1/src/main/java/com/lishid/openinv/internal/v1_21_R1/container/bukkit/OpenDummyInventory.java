@@ -1,5 +1,6 @@
-package com.lishid.openinv.internal.v1_21_R1.container;
+package com.lishid.openinv.internal.v1_21_R1.container.bukkit;
 
+import com.lishid.openinv.internal.ViewOnly;
 import net.minecraft.world.Container;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_21_R1.inventory.CraftInventory;
@@ -14,9 +15,9 @@ import java.util.ListIterator;
 /**
  * A locked down "empty" inventory that rejects plugin interaction.
  */
-public class OpenViewInventory extends CraftInventory {
+public class OpenDummyInventory extends CraftInventory implements ViewOnly {
 
-  public OpenViewInventory(Container inventory) {
+  public OpenDummyInventory(Container inventory) {
     super(inventory);
   }
 
@@ -30,16 +31,19 @@ public class OpenViewInventory extends CraftInventory {
 
   }
 
+  @SuppressWarnings("NonApiType")
   @Override
   public @NotNull HashMap<Integer, ItemStack> addItem(@NotNull ItemStack... items) throws IllegalArgumentException {
     return arrayToHashMap(items);
   }
 
+  @SuppressWarnings("NonApiType")
   @Override
   public @NotNull HashMap<Integer, ItemStack> removeItem(@NotNull ItemStack... items) throws IllegalArgumentException {
     return arrayToHashMap(items);
   }
 
+  @SuppressWarnings("NonApiType")
   private static @NotNull HashMap<Integer, ItemStack> arrayToHashMap(@NotNull ItemStack[] items) {
     HashMap<Integer, ItemStack> ignored = new HashMap<>();
     for (int index = 0; index < items.length; ++index) {
@@ -93,12 +97,14 @@ public class OpenViewInventory extends CraftInventory {
     return false;
   }
 
+  @SuppressWarnings("NonApiType")
   @Override
   public @NotNull HashMap<Integer, ItemStack> all(
       @NotNull Material material) throws IllegalArgumentException {
     return new HashMap<>();
   }
 
+  @SuppressWarnings("NonApiType")
   @Override
   public @NotNull HashMap<Integer, ItemStack> all(@Nullable ItemStack item) {
     return new HashMap<>();

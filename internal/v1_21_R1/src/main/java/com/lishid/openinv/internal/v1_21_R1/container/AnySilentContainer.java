@@ -17,6 +17,7 @@
 package com.lishid.openinv.internal.v1_21_R1.container;
 
 import com.lishid.openinv.internal.IAnySilentContainer;
+import com.lishid.openinv.internal.v1_21_R1.container.menu.OpenChestMenu;
 import com.lishid.openinv.internal.v1_21_R1.player.PlayerManager;
 import com.lishid.openinv.util.ReflectionHelper;
 import com.lishid.openinv.util.lang.LanguageManager;
@@ -103,7 +104,7 @@ public class AnySilentContainer implements IAnySilentContainer {
             PlayerEnderChestContainer enderChest = player.getEnderChestInventory();
             enderChest.setActiveChest(enderChestTile);
             player.openMenu(new SimpleMenuProvider((containerCounter, playerInventory, ignored) -> {
-                MenuType<?> containers = OpenContainerMenu.getContainers(enderChest.getContainerSize());
+                MenuType<?> containers = OpenChestMenu.getChestMenuType(enderChest.getContainerSize());
                 int rows = enderChest.getContainerSize() / 9;
                 return new ChestMenu(containers, containerCounter, playerInventory, enderChest, rows);
             }, Component.translatable("container.enderchest")));

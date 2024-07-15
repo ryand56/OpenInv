@@ -1,5 +1,6 @@
-package com.lishid.openinv.internal.v1_21_R1.container;
+package com.lishid.openinv.internal.v1_21_R1.container.bukkit;
 
+import com.lishid.openinv.internal.v1_21_R1.container.OpenInventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
