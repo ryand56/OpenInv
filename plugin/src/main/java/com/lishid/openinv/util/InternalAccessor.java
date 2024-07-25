@@ -21,11 +21,13 @@ import com.github.jikoo.planarwrappers.util.version.Version;
 import com.lishid.openinv.internal.Accessor;
 import com.lishid.openinv.internal.IAnySilentContainer;
 import com.lishid.openinv.internal.ISpecialEnderChest;
+import com.lishid.openinv.internal.ISpecialInventory;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
 import com.lishid.openinv.internal.PlayerManager;
 import com.lishid.openinv.util.lang.LanguageManager;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.InventoryView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,32 +124,6 @@ public class InternalAccessor {
     }
 
     /**
-     * Creates an instance of the IAnySilentContainer implementation for the current server version.
-     *
-     * @return the IAnySilentContainer
-     * @throws IllegalStateException if server version is unsupported
-     */
-    public @NotNull IAnySilentContainer getAnySilentContainer() {
-        if (internal == null) {
-            throw new IllegalStateException(String.format("Unsupported server version %s!", BukkitVersions.MINECRAFT));
-        }
-        return internal.getAnySilentContainer();
-    }
-
-    /**
-     * Creates an instance of the IPlayerDataManager implementation for the current server version.
-     *
-     * @return the IPlayerDataManager
-     * @throws IllegalStateException if server version is unsupported
-     */
-    public @NotNull PlayerManager getPlayerDataManager() {
-        if (internal == null) {
-            throw new IllegalStateException(String.format("Unsupported server version %s!", BukkitVersions.MINECRAFT));
-        }
-        return internal.getPlayerManager();
-    }
-
-    /**
      * Reload internal features.
      */
     public void reload(ConfigurationSection config) {
@@ -175,12 +151,45 @@ public class InternalAccessor {
     }
 
     /**
+     * Get the instance of the IAnySilentContainer implementation for the current server version.
+     *
+     * @return the IAnySilentContainer
+     * @throws IllegalStateException if server version is unsupported
+     */
+    public @NotNull IAnySilentContainer getAnySilentContainer() {
+        if (internal == null) {
+            throw new IllegalStateException(String.format("Unsupported server version %s!", BukkitVersions.MINECRAFT));
+        }
+        return internal.getAnySilentContainer();
+    }
+
+    public @Nullable InventoryView openInventory(@NotNull Player player, @NotNull ISpecialInventory inventory) {
+        if (internal == null) {
+            throw new IllegalStateException(String.format("Unsupported server version %s!", BukkitVersions.MINECRAFT));
+        }
+        return internal.getPlayerManager().openInventory(player, inventory);
+    }
+
+    /**
+     * Get the instance of the IPlayerDataManager implementation for the current server version.
+     *
+     * @return the IPlayerDataManager
+     * @throws IllegalStateException if server version is unsupported
+     */
+    @NotNull PlayerManager getPlayerDataManager() {
+        if (internal == null) {
+            throw new IllegalStateException(String.format("Unsupported server version %s!", BukkitVersions.MINECRAFT));
+        }
+        return internal.getPlayerManager();
+    }
+
+    /**
      * Creates an instance of the ISpecialEnderChest implementation for the given Player.
      *
      * @param player the Player
      * @return the ISpecialEnderChest created
      */
-    public ISpecialEnderChest newSpecialEnderChest(final Player player) {
+    ISpecialEnderChest createEnderChest(final Player player) {
         if (internal == null) {
             throw new IllegalStateException(String.format("Unsupported server version %s!", BukkitVersions.MINECRAFT));
         }
@@ -193,7 +202,7 @@ public class InternalAccessor {
      * @param player the Player
      * @return the ISpecialPlayerInventory created
      */
-    public ISpecialPlayerInventory newSpecialPlayerInventory(final Player player) {
+    ISpecialPlayerInventory createInventory(final Player player) {
         if (internal == null) {
             throw new IllegalStateException(String.format("Unsupported server version %s!", BukkitVersions.MINECRAFT));
         }

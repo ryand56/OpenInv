@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.openinv.commands;
+package com.lishid.openinv.command;
 
 import com.lishid.openinv.util.TabCompleter;
 import com.lishid.openinv.util.lang.LanguageManager;
@@ -46,9 +46,9 @@ import java.util.Locale;
  */
 public class SearchEnchantCommand implements TabExecutor {
 
-    private final LanguageManager lang;
+    private final @NotNull LanguageManager lang;
 
-    public SearchEnchantCommand(LanguageManager lang) {
+    public SearchEnchantCommand(@NotNull LanguageManager lang) {
         this.lang = lang;
     }
 

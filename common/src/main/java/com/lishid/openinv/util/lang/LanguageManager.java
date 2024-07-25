@@ -274,7 +274,7 @@ public class LanguageManager {
         if (sender instanceof Player) {
             return ((Player) sender).getLocale();
         } else {
-            return plugin.getConfig().getString("settings.locale", "en_us");
+            return plugin.getConfig().getString("settings.locale", "en");
         }
     }
 

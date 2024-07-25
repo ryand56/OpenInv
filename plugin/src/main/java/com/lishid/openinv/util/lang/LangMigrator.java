@@ -1,4 +1,4 @@
-package com.lishid.openinv.util;
+package com.lishid.openinv.util.lang;
 
 import org.jetbrains.annotations.NotNull;
 

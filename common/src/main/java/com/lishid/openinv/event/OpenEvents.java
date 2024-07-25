@@ -16,8 +16,8 @@ public final class OpenEvents {
     return call(new PlayerSaveEvent(player));
   }
 
-  public static boolean saveCancelled(@NotNull Player player, @NotNull ISpecialInventory inventory) {
-    return call(new OpenPlayerSaveEvent(player, inventory));
+  public static boolean saveCancelled(@NotNull ISpecialInventory inventory) {
+    return call(new OpenPlayerSaveEvent((Player) inventory.getPlayer(), inventory));
   }
 
   private static <T extends Event & Cancellable> boolean call(T event) {

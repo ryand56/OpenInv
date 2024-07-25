@@ -3,6 +3,7 @@ package com.lishid.openinv.event;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.lishid.openinv.internal.ISpecialInventory;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
  * Event fired before OpenInv saves a player's data when closing an {@link ISpecialInventory}.
  */
 public class OpenPlayerSaveEvent extends PlayerSaveEvent {
+
+  private static final HandlerList HANDLERS = new HandlerList();
 
   private final ISpecialInventory inventory;
 
@@ -38,6 +41,16 @@ public class OpenPlayerSaveEvent extends PlayerSaveEvent {
    */
   public @NotNull ISpecialInventory getInventory() {
     return inventory;
+  }
+
+  @NotNull
+  @Override
+  public HandlerList getHandlers() {
+    return HANDLERS;
+  }
+
+  public static HandlerList getHandlerList() {
+    return HANDLERS;
   }
 
 }

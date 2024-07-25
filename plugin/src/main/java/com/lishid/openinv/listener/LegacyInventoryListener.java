@@ -1,12 +1,12 @@
-package com.lishid.openinv;
+package com.lishid.openinv.listener;
 
 import com.google.errorprone.annotations.Keep;
+import com.lishid.openinv.OpenInv;
 import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.internal.ISpecialInventory;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
 import com.lishid.openinv.util.InventoryAccess;
 import com.lishid.openinv.util.Permissions;
-import org.bukkit.GameMode;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,11 +14,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -29,35 +27,19 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-record LegacyInventoryListener(OpenInv plugin) implements Listener {
+/**
+ * A listener used to enable functionality and prevent issues on versions < 1.21.
+ */
+public class LegacyInventoryListener implements Listener {
 
-  @Keep
-  @EventHandler
-  private void onInventoryClose(@NotNull final InventoryCloseEvent event) {
-    if (!(event.getPlayer() instanceof Player player)) {
-      return;
-    }
+  private final @NotNull OpenInv plugin;
 
-    InventoryHolder holder = event.getInventory().getHolder();
-    if (this.plugin.getSilentContainerStatus(player)
-        && holder != null
-        && this.plugin.getAnySilentContainer().isAnySilentContainer(holder)) {
-      this.plugin.getAnySilentContainer().deactivateContainer(player);
-    }
-
-    ISpecialInventory specialInventory = InventoryAccess.getEnderChest(event.getInventory());
-    if (specialInventory != null) {
-      this.plugin.handleCloseInventory(specialInventory);
-    } else {
-      specialInventory = InventoryAccess.getPlayerInventory(event.getInventory());
-      if (specialInventory != null) {
-        this.plugin.handleCloseInventory(specialInventory);
-      }
-    }
+  public LegacyInventoryListener(@NotNull OpenInv plugin) {
+    this.plugin = plugin;
   }
 
   @Keep
-  @EventHandler(priority = EventPriority.LOWEST)
+  @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
   private void onInventoryClick(@NotNull final InventoryClickEvent event) {
     if (handleInventoryInteract(event)) {
       return;
@@ -86,13 +68,18 @@ record LegacyInventoryListener(OpenInv plugin) implements Listener {
   }
 
   @Keep
-  @EventHandler(priority = EventPriority.LOWEST)
+  @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
   private void onInventoryDrag(@NotNull final InventoryDragEvent event) {
     if (handleInventoryInteract(event)) {
       return;
     }
 
     InventoryView view = event.getView();
+
+    if (view.getCursor() == null) {
+      return;
+    }
+
     int topSize = view.getTopInventory().getSize();
 
     // Get bottom inventory active slots as player inventory slots.
@@ -123,15 +110,29 @@ record LegacyInventoryListener(OpenInv plugin) implements Listener {
       return;
     }
 
-    ItemStack cursor = event.getCursor();
-    if (cursor != null) {
-      cursor.setAmount(cursor.getAmount() + overlapLosses);
-    } else {
-      cursor = event.getOldCursor().clone();
-      cursor.setAmount(overlapLosses);
-    }
+    final ItemStack lost = view.getCursor().clone();
+    lost.setAmount(overlapLosses);
 
-    event.setCursor(cursor);
+    // Re-add the lost items in the same tick after the event has completed.
+    plugin.getServer().getScheduler().runTask(plugin, () -> {
+      InventoryView currentOpen = event.getWhoClicked().getOpenInventory();
+
+      if (!currentOpen.equals(view)) {
+        event.getWhoClicked().getWorld().dropItem(event.getWhoClicked().getLocation(), lost).setPickupDelay(0);
+        return;
+      }
+
+      ItemStack cursor = currentOpen.getCursor();
+
+      if (cursor == null) {
+        currentOpen.setCursor(lost);
+      } else if (lost.isSimilar(cursor)) {
+        cursor.setAmount(cursor.getAmount() + lost.getAmount());
+        currentOpen.setCursor(cursor);
+      } else {
+        event.getWhoClicked().getWorld().dropItem(event.getWhoClicked().getLocation(), lost).setPickupDelay(0);
+      }
+    });
   }
 
   private int getCountDiff(@Nullable ItemStack original, @NotNull ItemStack result) {
@@ -150,15 +151,6 @@ record LegacyInventoryListener(OpenInv plugin) implements Listener {
    */
   private boolean handleInventoryInteract(@NotNull final InventoryInteractEvent event) {
     HumanEntity entity = event.getWhoClicked();
-
-    // Un-cancel spectator interactions.
-    if (Permissions.SPECTATE_CLICK.hasPermission(entity) && entity.getGameMode() == GameMode.SPECTATOR) {
-      event.setCancelled(false);
-    }
-
-    if (event.isCancelled()) {
-      return true;
-    }
 
     Inventory inventory = event.getView().getTopInventory();
     ISpecialInventory backing = InventoryAccess.getInventory(inventory);

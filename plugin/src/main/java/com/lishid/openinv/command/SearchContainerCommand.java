@@ -14,7 +14,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.openinv.commands;
+package com.lishid.openinv.command;
 
 import com.lishid.openinv.util.TabCompleter;
 import com.lishid.openinv.util.lang.LanguageManager;

@@ -14,13 +14,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.openinv.commands;
+package com.lishid.openinv.command;
 
-import com.lishid.openinv.IOpenInv;
+import com.lishid.openinv.util.setting.PlayerToggle;
 import com.lishid.openinv.util.TabCompleter;
+import com.lishid.openinv.util.setting.Toggles;
 import com.lishid.openinv.util.lang.LanguageManager;
 import com.lishid.openinv.util.lang.Replacement;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -30,16 +30,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
+import java.util.UUID;
 
 public class ContainerSettingCommand implements TabExecutor {
 
-    private final @NotNull IOpenInv plugin;
+    private final @NotNull Toggles toggles;
     private final @NotNull LanguageManager lang;
 
-    public ContainerSettingCommand(@NotNull IOpenInv plugin, @NotNull LanguageManager lang) {
-        this.plugin = plugin;
+    public ContainerSettingCommand(@NotNull Toggles toggles, @NotNull LanguageManager lang) {
+        this.toggles = toggles;
         this.lang = lang;
     }
 
@@ -51,28 +50,28 @@ public class ContainerSettingCommand implements TabExecutor {
         }
 
         boolean any = command.getName().startsWith("any");
-        Predicate<Player> getSetting = any ? plugin::getAnyContainerStatus : plugin::getSilentContainerStatus;
-        BiConsumer<OfflinePlayer, Boolean> setSetting = any ? plugin::setAnyContainerStatus : plugin::setSilentContainerStatus;
+        PlayerToggle toggle = any ? toggles.any() : toggles.silent();
+        UUID playerId = player.getUniqueId();
 
         if (args.length > 0) {
             args[0] = args[0].toLowerCase(Locale.ENGLISH);
 
             if (args[0].equals("on")) {
-                setSetting.accept(player, true);
+                toggle.set(playerId, true);
             } else if (args[0].equals("off")) {
-                setSetting.accept(player, false);
+                toggle.set(playerId, false);
             } else if (!args[0].equals("check")) {
                 // Invalid argument, show usage.
                 return false;
             }
 
         } else {
-            setSetting.accept(player, !getSetting.test(player));
+            toggle.set(playerId, !toggle.is(playerId));
         }
 
-        String onOff = lang.getLocalizedMessage(player, getSetting.test(player) ? "messages.info.on" : "messages.info.off");
+        String onOff = lang.getLocalizedMessage(player, toggle.is(playerId) ? "messages.info.on" : "messages.info.off");
         if (onOff == null) {
-            onOff = String.valueOf(getSetting.test(player));
+            onOff = String.valueOf(toggle.is(playerId));
         }
 
         lang.sendMessage(

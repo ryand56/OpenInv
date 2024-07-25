@@ -14,12 +14,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.lishid.openinv.commands;
+package com.lishid.openinv.command;
 
 import com.lishid.openinv.OpenInv;
 import com.lishid.openinv.internal.ISpecialInventory;
+import com.lishid.openinv.util.InventoryManager;
 import com.lishid.openinv.util.Permissions;
+import com.lishid.openinv.util.PlayerLoader;
 import com.lishid.openinv.util.TabCompleter;
+import com.lishid.openinv.util.config.Config;
 import com.lishid.openinv.util.lang.LanguageManager;
 import com.lishid.openinv.util.lang.Replacement;
 import org.bukkit.OfflinePlayer;
@@ -40,13 +43,24 @@ import java.util.logging.Level;
 public class OpenInvCommand implements TabExecutor {
 
     private final @NotNull OpenInv plugin;
+    private final @NotNull Config config;
+    private final @NotNull InventoryManager manager;
     private final @NotNull LanguageManager lang;
+    private final @NotNull PlayerLoader playerLoader;
     private final HashMap<Player, String> openInvHistory = new HashMap<>();
     private final HashMap<Player, String> openEnderHistory = new HashMap<>();
 
-    public OpenInvCommand(@NotNull OpenInv plugin, @NotNull LanguageManager lang) {
+    public OpenInvCommand(
+        @NotNull OpenInv plugin,
+        @NotNull Config config,
+        @NotNull InventoryManager manager,
+        @NotNull LanguageManager lang,
+        @NotNull PlayerLoader playerLoader) {
         this.plugin = plugin;
+        this.config = config;
+        this.manager = manager;
         this.lang = lang;
+        this.playerLoader = playerLoader;
     }
 
     @Override
@@ -64,7 +78,7 @@ public class OpenInvCommand implements TabExecutor {
         }
 
         String noArgValue;
-        if (plugin.noArgsOpensSelf()) {
+        if (config.doesNoArgsOpenSelf()) {
             noArgValue = player.getUniqueId().toString();
         } else {
             // History management
@@ -87,7 +101,7 @@ public class OpenInvCommand implements TabExecutor {
         new BukkitRunnable() {
             @Override
             public void run() {
-                final OfflinePlayer offlinePlayer = OpenInvCommand.this.plugin.matchPlayer(name);
+                final OfflinePlayer offlinePlayer = playerLoader.match(name);
 
                 if (offlinePlayer == null || (!offlinePlayer.hasPlayedBefore() && !offlinePlayer.isOnline())) {
                     lang.sendMessage(player, "messages.error.invalidPlayer");
@@ -143,9 +157,9 @@ public class OpenInvCommand implements TabExecutor {
         boolean online = target.isOnline();
 
         if (!online) {
-            if (!plugin.disableOfflineAccess() && Permissions.ACCESS_OFFLINE.hasPermission(player)) {
+            if (!config.isOfflineDisabled() && Permissions.ACCESS_OFFLINE.hasPermission(player)) {
                 // Try loading the player's data
-                onlineTarget = this.plugin.loadPlayer(target);
+                onlineTarget = playerLoader.load(target);
             } else {
                 lang.sendMessage(player, "messages.error.permissionPlayerOffline");
                 return;
@@ -203,7 +217,7 @@ public class OpenInvCommand implements TabExecutor {
             }
         }
 
-        if (!plugin.noArgsOpensSelf()) {
+        if (!config.doesNoArgsOpenSelf()) {
             // Record the target
             (openinv ? this.openInvHistory : this.openEnderHistory).put(player, target.getUniqueId().toString());
         }
@@ -211,7 +225,7 @@ public class OpenInvCommand implements TabExecutor {
         // Create the inventory
         final ISpecialInventory inv;
         try {
-            inv = openinv ? this.plugin.getSpecialInventory(onlineTarget, online) : this.plugin.getSpecialEnderChest(onlineTarget, online);
+            inv = openinv ? manager.getInventory(onlineTarget) : manager.getEnderChest(onlineTarget);
         } catch (Exception e) {
             lang.sendMessage(player, "messages.error.commandException");
             plugin.getLogger().log(Level.WARNING, "Unable to create ISpecialInventory", e);

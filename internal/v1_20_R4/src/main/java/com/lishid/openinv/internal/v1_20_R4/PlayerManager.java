@@ -105,11 +105,6 @@ public class PlayerManager implements com.lishid.openinv.internal.PlayerManager 
 
     @Override
     public @Nullable Player loadPlayer(@NotNull final OfflinePlayer offline) {
-        // Ensure player has data
-        if (!offline.hasPlayedBefore()) {
-            return null;
-        }
-
         MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
         ServerLevel worldServer = server.getLevel(Level.OVERWORLD);
 
