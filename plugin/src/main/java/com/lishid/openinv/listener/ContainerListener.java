@@ -20,7 +20,7 @@ import com.google.errorprone.annotations.Keep;
 import com.lishid.openinv.internal.ViewOnly;
 import com.lishid.openinv.util.InternalAccessor;
 import com.lishid.openinv.util.Permissions;
-import com.lishid.openinv.util.setting.Toggles;
+import com.lishid.openinv.util.setting.PlayerToggles;
 import com.lishid.openinv.util.lang.LanguageManager;
 import org.bukkit.GameMode;
 import org.bukkit.entity.HumanEntity;
@@ -47,12 +47,10 @@ import java.util.UUID;
 public class ContainerListener implements Listener {
 
   private final @NotNull InternalAccessor accessor;
-  private final @NotNull Toggles toggles;
   private final @NotNull LanguageManager lang;
 
-  public ContainerListener(@NotNull InternalAccessor accessor, @NotNull Toggles toggles, @NotNull LanguageManager lang) {
+  public ContainerListener(@NotNull InternalAccessor accessor, @NotNull LanguageManager lang) {
     this.accessor = accessor;
-    this.toggles = toggles;
     this.lang = lang;
   }
 
@@ -74,14 +72,14 @@ public class ContainerListener implements Listener {
 
     Player player = event.getPlayer();
     UUID playerId = player.getUniqueId();
-    boolean any = Permissions.CONTAINER_ANY.hasPermission(player) && toggles.any().is(playerId);
+    boolean any = Permissions.CONTAINER_ANY.hasPermission(player) && PlayerToggles.any().is(playerId);
     boolean needsAny = accessor.getAnySilentContainer().isAnyContainerNeeded(event.getClickedBlock());
 
     if (!any && needsAny) {
       return;
     }
 
-    boolean silent = Permissions.CONTAINER_SILENT.hasPermission(player) && toggles.silent().is(playerId);
+    boolean silent = Permissions.CONTAINER_SILENT.hasPermission(player) && PlayerToggles.silent().is(playerId);
 
     // If anycontainer or silentcontainer is active
     if (any || silent) {
@@ -106,7 +104,7 @@ public class ContainerListener implements Listener {
     }
 
     InventoryHolder holder = event.getInventory().getHolder();
-    if (toggles.silent().is(player.getUniqueId())
+    if (PlayerToggles.silent().is(player.getUniqueId())
         && holder != null
         && this.accessor.getAnySilentContainer().isAnySilentContainer(holder)) {
       this.accessor.getAnySilentContainer().deactivateContainer(player);

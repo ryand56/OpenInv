@@ -29,13 +29,15 @@ import com.lishid.openinv.internal.ISpecialInventory;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
 import com.lishid.openinv.listener.ContainerListener;
 import com.lishid.openinv.listener.LegacyInventoryListener;
+import com.lishid.openinv.listener.ToggleListener;
 import com.lishid.openinv.util.config.Config;
 import com.lishid.openinv.util.config.ConfigUpdater;
 import com.lishid.openinv.util.InternalAccessor;
 import com.lishid.openinv.util.InventoryManager;
 import com.lishid.openinv.util.lang.LangMigrator;
 import com.lishid.openinv.util.PlayerLoader;
-import com.lishid.openinv.util.setting.Toggles;
+import com.lishid.openinv.util.setting.PlayerToggle;
+import com.lishid.openinv.util.setting.PlayerToggles;
 import com.lishid.openinv.util.lang.LanguageManager;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -50,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -60,7 +63,6 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
 
     private InternalAccessor accessor;
     private Config config;
-    private Toggles toggles;
     private InventoryManager inventoryManager;
     private LanguageManager languageManager;
     private PlayerLoader playerLoader;
@@ -70,7 +72,6 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
     public void reloadConfig() {
         super.reloadConfig();
         config.reload(getConfig());
-        toggles.reload(getConfig());
         languageManager.reload();
         if (accessor != null && accessor.isSupported()) {
             accessor.reload(getConfig());
@@ -103,12 +104,6 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
         // Set up configurable features. Note that #reloadConfig is called on the first call to #getConfig!
         // Configuration values should not be accessed until after all of these have been set up.
         config = new Config();
-        toggles = new Toggles() {
-            @Override
-            public void save() {
-                saveConfig();
-            }
-        };
         languageManager = new LanguageManager(this, "en");
         accessor = new InternalAccessor(getLogger(), languageManager);
 
@@ -132,27 +127,40 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
             // Update existing configuration. May require internal access.
             new ConfigUpdater(this).checkForUpdates();
 
-            // Get plugin manager
-            PluginManager pm = this.getServer().getPluginManager();
-            // Register listeners
-            if (BukkitVersions.MINECRAFT.lessThan(Version.of(1, 21))) {
-                pm.registerEvents(new LegacyInventoryListener(this), this);
-            }
-            pm.registerEvents(playerLoader, this);
-            pm.registerEvents(inventoryManager, this);
-            pm.registerEvents(new ContainerListener(accessor, toggles, languageManager), this);
+            // Register relevant event listeners.
+            registerEvents();
 
-            // Register commands to their executors
-            this.setCommandExecutor(new OpenInvCommand(this, config, inventoryManager, languageManager, playerLoader), "openinv", "openender");
-            this.setCommandExecutor(new SearchContainerCommand(this, languageManager), "searchcontainer");
-            this.setCommandExecutor(new SearchInvCommand(languageManager), "searchinv", "searchender");
-            this.setCommandExecutor(new SearchEnchantCommand(languageManager), "searchenchant");
-            this.setCommandExecutor(new ContainerSettingCommand(toggles, languageManager), "silentcontainer", "anycontainer");
+            // Register commands to their executors.
+            registerCommands();
 
         } else {
             this.sendVersionError(this.getLogger()::warning);
         }
 
+    }
+
+    private void registerEvents() {
+        PluginManager pluginManager = this.getServer().getPluginManager();
+        // Legacy: extra listener for permission handling and self-view issue prevention.
+        if (BukkitVersions.MINECRAFT.lessThan(Version.of(1, 21))) {
+            pluginManager.registerEvents(new LegacyInventoryListener(this), this);
+        }
+        pluginManager.registerEvents(playerLoader, this);
+        pluginManager.registerEvents(inventoryManager, this);
+        pluginManager.registerEvents(new ContainerListener(accessor, languageManager), this);
+        pluginManager.registerEvents(new ToggleListener(), this);
+    }
+
+    private void registerCommands() {
+        this.setCommandExecutor(new OpenInvCommand(this, config, inventoryManager, languageManager, playerLoader), "openinv", "openender");
+        this.setCommandExecutor(new SearchContainerCommand(this, languageManager), "searchcontainer");
+        this.setCommandExecutor(new SearchInvCommand(languageManager), "searchinv", "searchender");
+        this.setCommandExecutor(new SearchEnchantCommand(languageManager), "searchenchant");
+
+        ContainerSettingCommand settingCommand = new ContainerSettingCommand(languageManager);
+        for (PlayerToggle toggle : PlayerToggles.get()) {
+            setCommandExecutor(settingCommand, toggle.getName().toLowerCase(Locale.ENGLISH));
+        }
     }
 
     private void setCommandExecutor(@NotNull CommandExecutor executor, String @NotNull ... commands) {
@@ -210,22 +218,22 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
 
     @Override
     public boolean getAnyContainerStatus(@NotNull final OfflinePlayer offline) {
-        return toggles.any().is(offline.getUniqueId());
+        return PlayerToggles.any().is(offline.getUniqueId());
     }
 
     @Override
     public void setAnyContainerStatus(@NotNull final OfflinePlayer offline, final boolean status) {
-        toggles.any().set(offline.getUniqueId(), status);
+        PlayerToggles.any().set(offline.getUniqueId(), status);
     }
 
     @Override
     public boolean getSilentContainerStatus(@NotNull final OfflinePlayer offline) {
-        return toggles.silent().is(offline.getUniqueId());
+        return PlayerToggles.silent().is(offline.getUniqueId());
     }
 
     @Override
     public void setSilentContainerStatus(@NotNull final OfflinePlayer offline, final boolean status) {
-        toggles.silent().set(offline.getUniqueId(), status);
+        PlayerToggles.silent().set(offline.getUniqueId(), status);
     }
 
     @Override
