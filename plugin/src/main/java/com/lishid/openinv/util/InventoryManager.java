@@ -3,11 +3,11 @@ package com.lishid.openinv.util;
 import com.github.jikoo.planarwrappers.util.version.BukkitVersions;
 import com.github.jikoo.planarwrappers.util.version.Version;
 import com.google.errorprone.annotations.Keep;
-import com.lishid.openinv.OpenInv;
 import com.lishid.openinv.event.OpenEvents;
 import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.internal.ISpecialInventory;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
+import com.lishid.openinv.util.config.Config;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +19,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,11 +44,13 @@ public class InventoryManager implements Listener {
   private final Map<UUID, ISpecialPlayerInventory> inventories = new ConcurrentHashMap<>();
   private final Map<UUID, ISpecialEnderChest> enderChests = new ConcurrentHashMap<>();
   private final Set<UUID> expectedCloses = new HashSet<>();
-  private final @NotNull OpenInv plugin;
+  private final @NotNull Plugin plugin;
+  private final @NotNull Config config;
   private final @NotNull InternalAccessor accessor;
 
-  public InventoryManager(@NotNull OpenInv plugin, @NotNull InternalAccessor accessor) {
+  public InventoryManager(@NotNull Plugin plugin, @NotNull Config config, @NotNull InternalAccessor accessor) {
     this.plugin = plugin;
+    this.config = config;
     this.accessor = accessor;
   }
 
@@ -60,7 +63,7 @@ public class InventoryManager implements Listener {
             viewer.closeInventory();
           }
           // If saving is prevented, return a null value for the player to save.
-          if (plugin.disableSaving() || OpenEvents.saveCancelled(inventory)) {
+          if (config.isSaveDisabled() || OpenEvents.saveCancelled(inventory)) {
             return null;
           }
           if (inventory.getPlayer() instanceof Player player) {
@@ -194,7 +197,7 @@ public class InventoryManager implements Listener {
 
     Player owner = (Player) inventory.getPlayer();
     Permissions connectedState = online ? Permissions.ACCESS_ONLINE : Permissions.ACCESS_OFFLINE;
-    boolean alwaysDenied = !online && plugin.disableOfflineAccess();
+    boolean alwaysDenied = !online && config.isOfflineDisabled();
 
     // Copy viewers so we don't modify the list we're iterating over when closing inventories.
     List<HumanEntity> viewers = new ArrayList<>(inventory.getBukkitInventory().getViewers());
@@ -248,7 +251,7 @@ public class InventoryManager implements Listener {
   }
 
   private void save(@NotNull ISpecialInventory inventory) {
-    if (plugin.disableSaving()) {
+    if (config.isSaveDisabled()) {
       return;
     }
 

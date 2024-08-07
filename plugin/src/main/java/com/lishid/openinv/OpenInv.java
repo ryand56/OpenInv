@@ -110,7 +110,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
         // Perform initial config load.
         reloadConfig();
 
-        inventoryManager = new InventoryManager(this, accessor);
+        inventoryManager = new InventoryManager(this, config, accessor);
         playerLoader = new PlayerLoader(this, config, inventoryManager, accessor, getLogger());
 
         try {
