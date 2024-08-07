@@ -224,7 +224,7 @@ public abstract class OpenChestMenu<T extends Container & ISpecialInventory & In
           continue;
         }
         // Otherwise, add as many as we can from our stack to the slot.
-        modified = addToExistingStack(itemStack, slot);
+        modified |= addToExistingStack(itemStack, slot);
       } else {
         // If this is the first empty slot, keep track of it for later use.
         if (firstEmpty == null) {
