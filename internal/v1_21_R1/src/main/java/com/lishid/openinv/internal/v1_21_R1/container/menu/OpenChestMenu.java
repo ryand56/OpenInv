@@ -255,8 +255,15 @@ public abstract class OpenChestMenu<T extends Container & ISpecialInventory & In
       return false;
     }
 
-    int total = existing.getCount() + itemStack.getCount();
     int max = slot.getMaxStackSize(existing);
+    int existingCount = existing.getCount();
+
+    // If the stack is already full, we can't add more.
+    if (existingCount >= max) {
+      return false;
+    }
+
+    int total = existingCount + itemStack.getCount();
 
     // If the existing item can accept the entirety of our item, we're done!
     if (total <= max) {
@@ -267,7 +274,7 @@ public abstract class OpenChestMenu<T extends Container & ISpecialInventory & In
     }
 
     // Otherwise, add as many as we can.
-    itemStack.shrink(max - existing.getCount());
+    itemStack.shrink(max - existingCount);
     existing.setCount(max);
     slot.setChanged();
     return true;
