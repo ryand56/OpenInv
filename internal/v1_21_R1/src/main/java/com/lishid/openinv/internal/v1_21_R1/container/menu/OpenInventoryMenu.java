@@ -1,5 +1,6 @@
 package com.lishid.openinv.internal.v1_21_R1.container.menu;
 
+import com.google.common.base.Preconditions;
 import com.lishid.openinv.internal.v1_21_R1.container.OpenInventory;
 import com.lishid.openinv.internal.v1_21_R1.container.bukkit.OpenDummyInventory;
 import com.lishid.openinv.internal.v1_21_R1.container.bukkit.OpenPlayerInventorySelf;
@@ -129,11 +130,13 @@ public class OpenInventoryMenu extends OpenChestMenu<OpenInventory> {
         if (viewOnly) {
           return null;
         }
-        if (rawSlot < 0) {
-          return super.getInventory(rawSlot);
+        if (rawSlot == InventoryView.OUTSIDE || rawSlot == -1) {
+          return null;
         }
+        Preconditions.checkArgument(rawSlot >= 0 && rawSlot < topSize + offset + BOTTOM_INVENTORY_SIZE,
+            "Slot %s outside of inventory", rawSlot);
         if (rawSlot > topSize) {
-          return super.getInventory(offset + rawSlot);
+          return getBottomInventory();
         }
         Slot slot = slots.get(rawSlot);
         if (slot.isFake()) {
@@ -157,7 +160,16 @@ public class OpenInventoryMenu extends OpenChestMenu<OpenInventory> {
           }
           return rawSlot;
         }
-        return super.convertSlot(offset + rawSlot);
+
+        int slot = rawSlot - topSize;
+
+        if (slot >= 27) {
+          slot -= 27;
+        } else {
+          slot += 9;
+        }
+
+        return slot;
       }
 
       @Override
@@ -166,14 +178,18 @@ public class OpenInventoryMenu extends OpenChestMenu<OpenInventory> {
           return InventoryType.SlotType.OUTSIDE;
         }
         if (slot >= topSize) {
-          return super.getSlotType(offset + slot);
+          slot -= topSize;
+          if (slot >= 27) {
+            return InventoryType.SlotType.QUICKBAR;
+          }
+          return InventoryType.SlotType.CONTAINER;
         }
         return OpenInventoryMenu.this.container.getSlotType(offset + slot);
       }
 
       @Override
       public int countSlots() {
-        return topSize + getBottomInventory().getSize();
+        return topSize + BOTTOM_INVENTORY_SIZE;
       }
     };
   }
