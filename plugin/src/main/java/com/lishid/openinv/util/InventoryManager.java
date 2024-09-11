@@ -111,7 +111,10 @@ public class InventoryManager implements Listener {
   @Keep
   @EventHandler(priority = EventPriority.LOWEST)
   private void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-    consumeLoaded(event.getPlayer().getUniqueId(), inventory -> checkViewerAccess(inventory, true));
+    consumeLoaded(event.getPlayer().getUniqueId(), inventory -> {
+      inventory.setPlayerOnline(event.getPlayer());
+      checkViewerAccess(inventory, true);
+    });
   }
 
   @Keep
