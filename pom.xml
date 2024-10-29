@@ -43,9 +43,8 @@
         <module>api</module>
         <module>addon/togglepersist</module>
         <module>common</module>
+        <module>internal/v1_21_R2</module>
         <module>internal/v1_21_R1</module>
-        <module>internal/v1_20_R4</module>
-        <module>internal/v1_20_R3</module>
         <module>plugin</module>
       </modules>
     </profile>
@@ -78,13 +77,13 @@
         <artifactId>annotations</artifactId>
         <groupId>org.jetbrains</groupId>
         <scope>provided</scope>
-        <version>25.0.0</version>
+        <version>26.0.1</version>
       </dependency>
       <dependency>
         <artifactId>spigot-api</artifactId>
         <groupId>org.spigotmc</groupId>
         <scope>provided</scope>
-        <version>1.20.4-R0.1-SNAPSHOT</version>
+        <version>1.21.1-R0.1-SNAPSHOT</version>
       </dependency>
       <dependency>
         <artifactId>openinvapi</artifactId>
