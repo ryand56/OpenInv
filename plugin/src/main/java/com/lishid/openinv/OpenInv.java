@@ -250,7 +250,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
         if (inventory instanceof ISpecialPlayerInventory) {
             edit = ownContainer ? Permissions.INVENTORY_EDIT_SELF : Permissions.INVENTORY_EDIT_OTHER;
         } else if (inventory instanceof ISpecialEnderChest) {
-            edit = ownContainer ? Permissions.ENDERCHEST_EDIT_SELF : Permissions.ENDERCHEST_OPEN_OTHER;
+            edit = ownContainer ? Permissions.ENDERCHEST_EDIT_SELF : Permissions.ENDERCHEST_EDIT_OTHER;
         }
 
         boolean viewOnly = edit != null && !edit.hasPermission(player);
