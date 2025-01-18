@@ -24,7 +24,7 @@
   <modules>
     <module>common</module>
   </modules>
-  <version>5.1.6</version>
+  <version>5.1.7-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
