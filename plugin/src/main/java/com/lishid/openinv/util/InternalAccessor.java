@@ -140,14 +140,7 @@ public class InternalAccessor {
         if (BukkitVersions.MINECRAFT.lessThanOrEqual(Version.of(1, 21, 2))) {
             return "https://github.com/Jikoo/OpenInv/releases/tag/5.1.3";
         }
-        boolean paper = false;
-        try {
-            Class.forName("io.papermc.paper.configuration.GlobalConfiguration");
-            paper = true;
-        } catch (ClassNotFoundException ignored) {
-            // Expected on Spigot.
-        }
-        if (!paper && BukkitVersions.MINECRAFT.lessThanOrEqual(Version.of(1, 21, 3))) {
+        if (BukkitVersions.MINECRAFT.lessThanOrEqual(Version.of(1, 21, 3))) {
             return "https://github.com/Jikoo/OpenInv/releases/tag/5.1.6";
         }
         return "https://github.com/Jikoo/OpenInv/releases";
