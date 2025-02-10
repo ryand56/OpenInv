@@ -1,10 +1,10 @@
 name: OpenInv
 main: com.lishid.openinv.OpenInv
-version: ${project.version}
+version: ${version}
 author: lishid
 authors: [Jikoo, ShadowRanger]
 description: Open a player's inventory as a chest and interact with it in real time.
-api-version: "1.16"
+api-version: "1.13"
 
 permissions:
 
