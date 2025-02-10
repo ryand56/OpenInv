@@ -4,6 +4,9 @@ plugins {
   alias(libs.plugins.shadow) apply false
 }
 
+// Set by Spigot module, used by Paper module to convert to Spigot's version of Mojang mappings.
+project.ext.set("craftbukkitPackage", "UNKNOWN")
+
 repositories {
   maven("https://repo.papermc.io/repository/maven-public/")
 }

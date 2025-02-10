@@ -8,6 +8,9 @@ repositories {
   mavenLocal()
 }
 
+val spigotVer = "1.21.4-R0.1-SNAPSHOT"
+rootProject.extra["craftbukkitPackage"] = "v1_21_R3"
+
 configurations.all {
   resolutionStrategy.capabilitiesResolution.withCapability("org.spigotmc:spigot-api") {
     val spigot = candidates.firstOrNull {
@@ -24,7 +27,7 @@ configurations.all {
 
 dependencies {
   compileOnly(libs.spigotapi)
-  compileOnly(variantOf(libs.spigot) { classifier("remapped-mojang") })
+  compileOnly(create("org.spigotmc", "spigot", spigotVer, classifier = "remapped-mojang"))
 
   compileOnly(project(":openinvapi"))
   compileOnly(project(":openinvcommon"))
@@ -43,5 +46,5 @@ tasks.register<Remap_spigot_gradle.RemapTask>("reobf") {
   notCompatibleWithConfigurationCache("gradle is hard")
   dependsOn(tasks.shadowJar)
   inputs.files(tasks.shadowJar.get().outputs.files.files)
-  spigotVersion = libs.spigot.get().version.toString()
+  spigotVersion = spigotVer
 }

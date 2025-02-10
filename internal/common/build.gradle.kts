@@ -30,8 +30,7 @@ val spigot = tasks.register<ShadowJar>("spigotRelocations") {
   dependsOn(tasks.jar)
   from(sourceSets.main.get().output)
   relocate("com.lishid.openinv.internal.common", "com.lishid.openinv.internal.reobf")
-  // TODO pass from Spigot adapter somehow. Can tasks be added by another project? Can we fetch a global config?
-  relocate("org.bukkit.craftbukkit", "org.bukkit.craftbukkit.v1_21_R3")
+  relocate("org.bukkit.craftbukkit", "org.bukkit.craftbukkit.${rootProject.extra["craftbukkitPackage"]}")
   archiveClassifier = "spigot"
 }
 
