@@ -1,5 +1,8 @@
-package com.lishid.openinv.internal.common.container.slot;
+package com.lishid.openinv.internal.paper1_21_1.container.slot;
 
+import com.lishid.openinv.internal.common.container.slot.ContentCrafting;
+import com.lishid.openinv.internal.common.container.slot.ContentViewOnly;
+import com.lishid.openinv.internal.common.container.slot.SlotViewOnly;
 import com.lishid.openinv.internal.common.container.slot.placeholder.Placeholders;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -9,11 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import org.bukkit.event.inventory.InventoryType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * A slot allowing viewing of the crafting result.
- *
- * <p>Unmodifiable because I said so. Use your own crafting grid.</p>
- */
 public class ContentCraftingResult extends ContentViewOnly {
 
   public ContentCraftingResult(@NotNull ServerPlayer holder) {
@@ -23,7 +21,7 @@ public class ContentCraftingResult extends ContentViewOnly {
   @Override
   public ItemStack get() {
     InventoryMenu inventoryMenu = holder.inventoryMenu;
-    return inventoryMenu.getResultSlot().getItem();
+    return inventoryMenu.getSlot(inventoryMenu.getResultSlotIndex()).getItem();
   }
 
   @Override
@@ -35,7 +33,7 @@ public class ContentCraftingResult extends ContentViewOnly {
           return Placeholders.survivalOnly(holder);
         }
         InventoryMenu inventoryMenu = holder.inventoryMenu;
-        return inventoryMenu.getResultSlot().getItem();
+        return inventoryMenu.getSlot(inventoryMenu.getResultSlotIndex()).getItem();
       }
     };
   }

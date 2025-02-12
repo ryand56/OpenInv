@@ -1,4 +1,4 @@
-package com.lishid.openinv.internal.common;
+package com.lishid.openinv.internal.paper1_21_1;
 
 import com.lishid.openinv.internal.Accessor;
 import com.lishid.openinv.internal.IAnySilentContainer;
@@ -7,9 +7,9 @@ import com.lishid.openinv.internal.ISpecialInventory;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
 import com.lishid.openinv.internal.common.container.AnySilentContainer;
 import com.lishid.openinv.internal.common.container.OpenEnderChest;
-import com.lishid.openinv.internal.common.container.OpenInventory;
-import com.lishid.openinv.internal.common.container.slot.placeholder.PlaceholderLoader;
-import com.lishid.openinv.internal.common.player.PlayerManager;
+import com.lishid.openinv.internal.paper1_21_1.container.OpenInventory;
+import com.lishid.openinv.internal.paper1_21_1.container.slot.placeholder.PlaceholderLoader;
+import com.lishid.openinv.internal.paper1_21_1.player.PlayerManager;
 import com.lishid.openinv.util.lang.LanguageManager;
 import net.minecraft.world.Container;
 import org.bukkit.configuration.ConfigurationSection;
@@ -24,14 +24,14 @@ import java.util.logging.Logger;
 
 public class InternalAccessor implements Accessor {
 
-  protected final @NotNull Logger logger;
+  private final @NotNull Logger logger;
   private final @NotNull PlayerManager manager;
   private final @NotNull AnySilentContainer anySilentContainer;
 
   public InternalAccessor(@NotNull Logger logger, @NotNull LanguageManager lang) {
     this.logger = logger;
-    manager = new PlayerManager(logger);
-    anySilentContainer = new AnySilentContainer(logger, lang);
+    this.manager = new PlayerManager(logger);
+    this.anySilentContainer = new AnySilentContainer(logger, lang);
   }
 
   @Override

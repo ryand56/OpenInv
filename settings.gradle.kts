@@ -18,6 +18,8 @@ project(":openinvcommon").projectDir = file("common")
 
 val internals = listOf(
   "common",
+  "paper1_21_3",
+  "paper1_21_1",
   "spigot"
 )
 for (internal in internals) {

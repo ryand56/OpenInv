@@ -14,6 +14,7 @@ import com.lishid.openinv.internal.common.container.slot.ContentList;
 import com.lishid.openinv.internal.common.container.slot.ContentOffHand;
 import com.lishid.openinv.internal.common.container.slot.ContentViewOnly;
 import com.lishid.openinv.internal.common.container.slot.SlotViewOnly;
+import com.lishid.openinv.internal.common.container.slot.placeholder.Placeholders;
 import com.lishid.openinv.internal.common.player.PlayerManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
@@ -191,10 +192,14 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
           };
         }
       });
-      slots.set(startIndex + 11, new ContentCraftingResult(owner));
+      slots.set(startIndex + 11, getCraftingResult(owner));
     }
 
     return startIndex + listSize;
+  }
+
+  protected Content getCraftingResult(@NotNull ServerPlayer serverPlayer) {
+    return new ContentCraftingResult(serverPlayer);
   }
 
   public Slot getMenuSlot(int index, int x, int y) {
