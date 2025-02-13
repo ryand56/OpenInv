@@ -5,6 +5,7 @@ import com.lishid.openinv.internal.common.container.OpenEnderChest;
 import com.lishid.openinv.internal.common.container.OpenInventory;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Dynamic;
+import io.papermc.paper.adventure.PaperAdventure;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
@@ -37,17 +38,6 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 public class PlayerManager implements com.lishid.openinv.internal.PlayerManager {
-
-  private static boolean paper;
-
-  static {
-    try {
-      Class.forName("io.papermc.paper.configuration.Configuration");
-      paper = true;
-    } catch (ClassNotFoundException ignored) {
-      paper = false;
-    }
-  }
 
   protected final @NotNull Logger logger;
   private @Nullable Field bukkitEntity;
@@ -158,10 +148,8 @@ public class PlayerManager implements com.lishid.openinv.internal.PlayerManager 
     // Game type settings are also loaded separately.
     player.loadGameTypes(loadedData);
 
-    if (paper) {
-      // Paper: world is not loaded by ServerPlayer#load(CompoundTag).
-      parseWorld(player, loadedData);
-    }
+    // World is not loaded by ServerPlayer#load(CompoundTag) on Paper.
+    parseWorld(player, loadedData);
 
     return true;
   }
@@ -267,8 +255,13 @@ public class PlayerManager implements com.lishid.openinv.internal.PlayerManager 
       return null;
     }
 
+    var newTitle = pair.getFirst();
+    if (newTitle != null) {
+      title = PaperAdventure.asVanilla(newTitle);
+    }
+
     player.containerMenu = menu;
-    player.connection.send(new ClientboundOpenScreenPacket(menu.containerId, menu.getType(), menu.getTitle()));
+    player.connection.send(new ClientboundOpenScreenPacket(menu.containerId, menu.getType(), title));
     player.initMenu(menu);
 
     return menu.getBukkitView();
