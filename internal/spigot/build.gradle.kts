@@ -37,6 +37,7 @@ dependencies {
 }
 
 tasks.shadowJar {
+  notCompatibleWithConfigurationCache("reobf task replaces output artifact") // TODO use an output of reobf
   relocate("com.lishid.openinv.internal.common", "com.lishid.openinv.internal.reobf")
 }
 
