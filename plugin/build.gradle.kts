@@ -13,7 +13,7 @@ dependencies {
   implementation(project(":openinvadaptercommon"))
   implementation(project(":openinvadapterpaper1_21_3"))
   implementation(project(":openinvadapterpaper1_21_1"))
-  implementation(project(":openinvadapterspigot", configuration = "shadow"))
+  implementation(project(":openinvadapterspigot", configuration = "reobf"))
   implementation(libs.planarwrappers)
 }
 
@@ -26,7 +26,6 @@ tasks.jar {
 }
 
 tasks.shadowJar {
-  dependsOn(":openinvadapterspigot:reobf")
   minimize {
     exclude(":openinv**")
   }
