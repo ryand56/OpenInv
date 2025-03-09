@@ -15,6 +15,10 @@ class ReflectionPreprocessor(
   private val jarMapping: JarMapping
 ) : RemapperProcessor(null, jarMapping, null) {
 
+  companion object {
+    private val JVM_TYPE_PATTERN = "^\\[*L.+;\$".toRegex()
+  }
+
   override fun process(classReader: ClassReader): ByteArray {
     val classNode = ClassNode()
     classReader.accept(classNode, 0)
@@ -89,8 +93,8 @@ class ReflectionPreprocessor(
       }
 
       val type = entry.key.substring(key.length + 1)
-      // Type should be L[?<identifier>;
-      if (type.length >= 3 && type[0] == 'L' && type[type.length - 1] == ';') {
+      // Type should be [*L<identifier>;
+      if (type.length >= 3 && type.matches(JVM_TYPE_PATTERN)) {
         return entry.value
       }
     }
