@@ -88,43 +88,15 @@ class ReflectionPreprocessor(
         continue
       }
 
-      // Ensure class is a valid class. This may prevent some collisions due to poor naming.
-      if (isValidClass(entry.key.substring(key.length + 1))) {
+      val type = entry.key.substring(key.length + 1)
+      // Type should be L[?<identifier>;
+      if (type.length >= 3 && type[0] == 'L' && type[type.length - 1] == ';') {
         return entry.value
       }
     }
 
     // No match.
     return null
-  }
-
-  private fun isValidClass(type: String): Boolean {
-    if (type.length < 3 || type[0] != 'L' || type[type.length - 1] != ';') {
-      // Type should be L<identifier>;
-      return false
-    }
-    val realType = type.substring(
-      if (type[1] == '[') {
-        2
-      } else {
-        1
-      },
-      type.length - 1
-    )
-
-    if (jarMapping.classes[realType] != null) {
-      return true
-    }
-
-    if (realType.length == 1) {
-      when (realType[0]) {
-        'B', 'C', 'D', 'F', 'I', 'J', 'S', 'Z', 'V' -> {
-          return true
-        }
-      }
-    }
-
-    return false
   }
 
   private fun remapClassForName(insn: AbstractInsnNode) {
