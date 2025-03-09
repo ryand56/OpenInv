@@ -1,8 +1,8 @@
 package com.github.jikoo.openinv
 
-import com.github.jikoo.openinv.specialsource.ReflectionJarMapping
 import com.github.jikoo.openinv.specialsource.ReflectionPreprocessor
 import net.md_5.specialsource.Jar
+import net.md_5.specialsource.JarMapping
 import net.md_5.specialsource.JarRemapper
 import net.md_5.specialsource.provider.JarProvider
 import net.md_5.specialsource.provider.JointProvider
@@ -54,7 +54,7 @@ abstract class SpigotReobfTask: org.gradle.api.tasks.bundling.Jar() {
   }
 
   private fun remapPartial(server: File, mapping: File, input: File, output: File, reverse: Boolean) {
-    val jarMapping = ReflectionJarMapping()
+    val jarMapping = JarMapping()
     jarMapping.loadMappings(mapping.path, reverse, false, null, null)
 
     val inheritance = JointProvider()

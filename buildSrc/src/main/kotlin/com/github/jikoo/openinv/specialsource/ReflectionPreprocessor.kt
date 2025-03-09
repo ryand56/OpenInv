@@ -1,6 +1,6 @@
 package com.github.jikoo.openinv.specialsource
 
-import net.md_5.specialsource.NodeType
+import net.md_5.specialsource.JarMapping
 import net.md_5.specialsource.RemapperProcessor
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -11,8 +11,8 @@ import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.LdcInsnNode
 import org.objectweb.asm.tree.MethodInsnNode
 
-open class ReflectionPreprocessor(
-  private val jarMapping: ReflectionJarMapping
+class ReflectionPreprocessor(
+  private val jarMapping: JarMapping
 ) : RemapperProcessor(null, jarMapping, null) {
 
   override fun process(classReader: ClassReader): ByteArray {
@@ -35,7 +35,7 @@ open class ReflectionPreprocessor(
     return classWriter.toByteArray()
   }
 
-  open fun remapGetDeclaredField(insn: AbstractInsnNode) {
+  private fun remapGetDeclaredField(insn: AbstractInsnNode) {
     val mi = insn as MethodInsnNode
 
     if (mi.owner != "java/lang/Class" || mi.name != "getDeclaredField" || mi.desc != "(Ljava/lang/String;)Ljava/lang/reflect/Field;") {
@@ -64,14 +64,70 @@ open class ReflectionPreprocessor(
     }
 
     val className = (ldcClass.cst as Type).internalName
-    val newName = jarMapping.tryClimb(jarMapping.reflectableFields, NodeType.FIELD, className, fieldName, null, 0)
+    val newName = lookup(className, fieldName)
     this.logR("Remapping $className/$fieldName -> $newName")
     if (newName != null) {
       ldcField.cst = newName
     }
   }
 
-  open fun remapClassForName(insn: AbstractInsnNode) {
+  private fun lookup(className: String, fieldName: String): String? {
+    val key = "$className/$fieldName"
+
+    // Try direct lookup first.
+    val direct = jarMapping.fields[key]
+    if (direct != null) {
+      return direct
+    }
+
+    // Fall through to indirect lookup in case the mappings are from Proguard.
+    for (entry in jarMapping.fields) {
+      // This is a safe index check. We know the string starts with but does not equal the key.
+      if (!entry.key.startsWith(key) || entry.key[key.length] != '/') {
+        // Not the same class or field, name shares a common prefix.
+        continue
+      }
+
+      // Ensure class is a valid class. This may prevent some collisions due to poor naming.
+      if (isValidClass(entry.key.substring(key.length + 1))) {
+        return entry.value
+      }
+    }
+
+    // No match.
+    return null
+  }
+
+  private fun isValidClass(type: String): Boolean {
+    if (type.length < 3 || type[0] != 'L' || type[type.length - 1] != ';') {
+      // Type should be L<identifier>;
+      return false
+    }
+    val realType = type.substring(
+      if (type[1] == '[') {
+        2
+      } else {
+        1
+      },
+      type.length - 1
+    )
+
+    if (jarMapping.classes[realType] != null) {
+      return true
+    }
+
+    if (realType.length == 1) {
+      when (realType[0]) {
+        'B', 'C', 'D', 'F', 'I', 'J', 'S', 'Z', 'V' -> {
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
+  private fun remapClassForName(insn: AbstractInsnNode) {
     val mi = insn as MethodInsnNode
 
     if (mi.owner != "java/lang/Class" || mi.name != "forName" || mi.desc != "(Ljava/lang/String;)Ljava/lang/Class;") {
@@ -96,7 +152,7 @@ open class ReflectionPreprocessor(
     }
   }
 
-  protected fun logR(message: String) {
+  private fun logR(message: String) {
     if (this.debug) {
       println("[ReflectionRemapper] $message")
     }
