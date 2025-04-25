@@ -1,24 +1,22 @@
-package com.lishid.openinv.internal.common.container.slot;
+package com.lishid.openinv.internal.reobf.container.slot;
 
-import com.lishid.openinv.internal.common.container.slot.placeholder.Placeholders;
+import com.lishid.openinv.internal.reobf.container.slot.placeholder.Placeholders;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.entity.EntityEquipment;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.bukkit.craftbukkit.v1_21_R4.CraftEquipmentSlot;
+import org.bukkit.craftbukkit.v1_21_R4.inventory.CraftItemStack;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * A slot for equipment that displays placeholders if empty.
- */
 public class ContentEquipment implements Content {
 
-  private EntityEquipment equipment;
+  private PlayerInventory equipment;
   private final ItemStack placeholder;
-  private final EquipmentSlot equipmentSlot;
+  private final org.bukkit.inventory.EquipmentSlot equipmentSlot;
 
   public ContentEquipment(ServerPlayer holder, EquipmentSlot equipmentSlot) {
     setHolder(holder);
@@ -29,36 +27,43 @@ public class ContentEquipment implements Content {
       case FEET -> Placeholders.emptyBoots;
       default -> Placeholders.emptyOffHand;
     };
-    this.equipmentSlot = equipmentSlot;
+    this.equipmentSlot = CraftEquipmentSlot.getSlot(equipmentSlot);
   }
 
   @Override
   public void setHolder(@NotNull ServerPlayer holder) {
-    this.equipment = holder.getInventory().equipment;
+    this.equipment = holder.getBukkitEntity().getInventory();
   }
 
   @Override
   public ItemStack get() {
-    return equipment.get(equipmentSlot);
+    return CraftItemStack.asNMSCopy(equipment.getItem(equipmentSlot));
   }
 
   @Override
   public ItemStack remove() {
-    return equipment.set(equipmentSlot, ItemStack.EMPTY);
+    org.bukkit.inventory.ItemStack old = equipment.getItem(equipmentSlot);
+    equipment.setItem(equipmentSlot, null);
+    return CraftItemStack.asNMSCopy(old);
   }
 
   @Override
   public ItemStack removePartial(int amount) {
-    ItemStack current = get();
-    if (!current.isEmpty() && amount > 0) {
-      return current.split(amount);
+    if (amount <= 0) {
+      return ItemStack.EMPTY;
     }
-    return ItemStack.EMPTY;
+    ItemStack current = get();
+    if (current.isEmpty()) {
+      return ItemStack.EMPTY;
+    }
+    ItemStack split = current.split(amount);
+    set(current);
+    return split;
   }
 
   @Override
   public void set(ItemStack itemStack) {
-    equipment.set(equipmentSlot, itemStack);
+    equipment.setItem(equipmentSlot, CraftItemStack.asCraftMirror(itemStack));
   }
 
   @Override
@@ -89,7 +94,7 @@ public class ContentEquipment implements Content {
     }
 
     public EquipmentSlot getEquipmentSlot() {
-      return equipmentSlot;
+      return CraftEquipmentSlot.getNMS(equipmentSlot);
     }
 
     public void onlyEquipmentFor(ServerPlayer viewer) {
@@ -102,7 +107,8 @@ public class ContentEquipment implements Content {
         return true;
       }
 
-      return equipmentSlot == EquipmentSlot.OFFHAND || viewer.getEquipmentSlotForItem(itemStack) == equipmentSlot;
+      return equipmentSlot == org.bukkit.inventory.EquipmentSlot.OFF_HAND
+          || viewer.getEquipmentSlotForItem(itemStack) == CraftEquipmentSlot.getNMS(equipmentSlot);
     }
 
   }

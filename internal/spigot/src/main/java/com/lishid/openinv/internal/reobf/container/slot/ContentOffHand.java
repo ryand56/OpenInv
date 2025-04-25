@@ -1,6 +1,6 @@
-package com.lishid.openinv.internal.common.container.slot;
+package com.lishid.openinv.internal.reobf.container.slot;
 
-import com.lishid.openinv.internal.common.player.OpenPlayer;
+import com.lishid.openinv.internal.reobf.player.OpenPlayer;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -10,9 +10,6 @@ import net.minecraft.world.inventory.Slot;
 import org.bukkit.event.inventory.InventoryType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * A slot for equipment that updates held items if necessary.
- */
 public class ContentOffHand extends ContentEquipment {
 
   private ServerPlayer holder;

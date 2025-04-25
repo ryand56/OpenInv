@@ -15,6 +15,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,7 +31,8 @@ public class OpenPlayer extends CraftPlayer {
    * @see net.minecraft.world.entity.player.Player#addAdditionalSaveData(CompoundTag)
    * @see net.minecraft.world.entity.LivingEntity#addAdditionalSaveData(CompoundTag)
    */
-  private static final Set<String> RESET_TAGS = Set.of(
+  @Unmodifiable
+  protected static final Set<String> RESET_TAGS = Set.of(
       // Entity#saveWithoutId(CompoundTag)
       "CustomName",
       "CustomNameVisible",
@@ -43,6 +45,7 @@ public class OpenPlayer extends CraftPlayer {
       "Passengers",
       // ServerPlayer#addAdditionalSaveData(CompoundTag)
       // Intentional omissions to prevent mount loss: Attach, Entity, and RootVehicle
+      // As of 1.21.5 only ender_pearls tag still needs to be reset. Rest are for backwards compatibility.
       "warden_spawn_tracker",
       "enteredNetherPosition",
       "SpawnX",
@@ -57,18 +60,23 @@ public class OpenPlayer extends CraftPlayer {
       "ShoulderEntityLeft",
       "ShoulderEntityRight",
       "LastDeathLocation",
-      "current_explosion_impact_pos",
+      "current_explosion_impact_pos", // Unnecessary in 1.21.5
       // LivingEntity#addAdditionalSaveData(CompoundTag)
       "active_effects",
       "SleepingX",
       "SleepingY",
       "SleepingZ",
-      "Brain"
+      "Brain",
+      "last_hurt_by_player",
+      "last_hurt_by_player_memory_time",
+      "last_hurt_by_mob",
+      "ticks_since_last_hurt_by_mob",
+      "equipment"
   );
 
   private final PlayerManager manager;
 
-  OpenPlayer(CraftServer server, ServerPlayer entity, PlayerManager manager) {
+  protected OpenPlayer(CraftServer server, ServerPlayer entity, PlayerManager manager) {
     super(server, entity);
     this.manager = manager;
   }
@@ -111,7 +119,7 @@ public class OpenPlayer extends CraftPlayer {
   }
 
   @Contract("null -> new")
-  private @NotNull CompoundTag getWritableTag(@Nullable CompoundTag oldData) {
+  protected @NotNull CompoundTag getWritableTag(@Nullable CompoundTag oldData) {
     if (oldData == null) {
       return new CompoundTag();
     }
@@ -120,8 +128,7 @@ public class OpenPlayer extends CraftPlayer {
     oldData = oldData.copy();
 
     // Remove vanilla/server data that is not written every time.
-    oldData.getAllKeys()
-        .removeIf(key -> RESET_TAGS.contains(key) || key.startsWith("Bukkit"));
+    oldData.keySet().removeIf(key -> RESET_TAGS.contains(key) || key.startsWith("Bukkit") || key.startsWith("Paper") && key.length() > 5);
 
     return oldData;
   }

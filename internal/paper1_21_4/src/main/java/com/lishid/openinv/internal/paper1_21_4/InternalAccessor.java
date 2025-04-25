@@ -1,4 +1,4 @@
-package com.lishid.openinv.internal.paper1_21_1;
+package com.lishid.openinv.internal.paper1_21_4;
 
 import com.lishid.openinv.internal.Accessor;
 import com.lishid.openinv.internal.IAnySilentContainer;
@@ -6,10 +6,10 @@ import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.internal.ISpecialInventory;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
 import com.lishid.openinv.internal.common.container.AnySilentContainer;
-import com.lishid.openinv.internal.paper1_21_1.container.OpenInventory;
-import com.lishid.openinv.internal.paper1_21_1.container.slot.placeholder.PlaceholderLoader;
-import com.lishid.openinv.internal.paper1_21_1.player.PlayerManager;
 import com.lishid.openinv.internal.paper1_21_4.container.OpenEnderChest;
+import com.lishid.openinv.internal.paper1_21_4.container.OpenInventory;
+import com.lishid.openinv.internal.paper1_21_4.container.slot.placeholder.CustomModelPlaceholderLoader;
+import com.lishid.openinv.internal.paper1_21_4.player.PlayerManager;
 import com.lishid.openinv.util.lang.LanguageManager;
 import net.minecraft.world.Container;
 import org.bukkit.configuration.ConfigurationSection;
@@ -24,14 +24,14 @@ import java.util.logging.Logger;
 
 public class InternalAccessor implements Accessor {
 
-  private final @NotNull Logger logger;
+  protected final @NotNull Logger logger;
   private final @NotNull PlayerManager manager;
   private final @NotNull AnySilentContainer anySilentContainer;
 
   public InternalAccessor(@NotNull Logger logger, @NotNull LanguageManager lang) {
     this.logger = logger;
-    this.manager = new PlayerManager(logger);
-    this.anySilentContainer = new AnySilentContainer(logger, lang);
+    manager = new PlayerManager(logger);
+    anySilentContainer = new AnySilentContainer(logger, lang);
   }
 
   @Override
@@ -71,7 +71,7 @@ public class InternalAccessor implements Accessor {
     ConfigurationSection placeholders = config.getConfigurationSection("placeholders");
     try {
       // Reset placeholders to defaults and try to load configuration.
-      new PlaceholderLoader().load(placeholders);
+      new CustomModelPlaceholderLoader().load(placeholders);
     } catch (Exception e) {
       logger.log(Level.WARNING, "Caught exception loading placeholder overrides!", e);
     }

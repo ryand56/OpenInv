@@ -16,6 +16,7 @@ import com.lishid.openinv.internal.common.container.slot.ContentViewOnly;
 import com.lishid.openinv.internal.common.container.slot.SlotViewOnly;
 import com.lishid.openinv.internal.common.container.slot.placeholder.Placeholders;
 import com.lishid.openinv.internal.common.player.PlayerManager;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -38,13 +39,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class OpenInventory implements Container, InternalOwned<ServerPlayer>, ISpecialPlayerInventory {
 
-  private final List<Content> slots;
+  protected final List<Content> slots;
   private final int size;
-  private ServerPlayer owner;
+  protected ServerPlayer owner;
   private int maxStackSize = 99;
   private CraftInventory bukkitEntity;
   public List<HumanEntity> transaction = new ArrayList<>();
@@ -60,15 +63,14 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
     setupSlots();
   }
 
-  private void setupSlots() {
+  protected void setupSlots() {
     // Top of inventory: Regular contents.
     int nextIndex = addMainInventory();
 
     // If inventory is expected size, we can arrange slots to be pretty.
     Inventory ownerInv = owner.getInventory();
-    if (ownerInv.items.size() == 36
-        && ownerInv.armor.size() == 4
-        && ownerInv.offhand.size() == 1
+    if (ownerInv.getNonEquipmentItems().size() == 36
+        && Inventory.EQUIPMENT_SLOT_MAPPING.size() == 5
         && owner.inventoryMenu.getCraftSlots().getContainerSize() == 4) {
       // Armor slots: Bottom left.
       addArmor(36);
@@ -95,7 +97,7 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
   }
 
   private int addMainInventory() {
-    int listSize = owner.getInventory().items.size();
+    int listSize = owner.getInventory().getNonEquipmentItems().size();
     // Hotbar slots are 0-8. We want those to appear on the bottom of the inventory like a normal player inventory,
     // so everything else needs to move up a row.
     int hotbarDiff = listSize - 9;
@@ -113,7 +115,7 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
       slots.set(localIndex, new ContentList(owner, invIndex, type) {
         @Override
         public void setHolder(@NotNull ServerPlayer holder) {
-          items = holder.getInventory().items;
+          items = holder.getInventory().getNonEquipmentItems();
         }
       });
     }
@@ -121,50 +123,36 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
   }
 
   private int addArmor(int startIndex) {
-    int listSize = owner.getInventory().armor.size();
-
-    for (int i = 0; i < listSize; ++i) {
-      // Armor slots go bottom to top; boots are slot 0, helmet is slot 3.
-      // Since we have to display horizontally due to space restrictions,
-      // making the left side the "top" is more user-friendly.
-      int armorIndex;
-      EquipmentSlot slot;
-      switch (i) {
-        case 3 -> {
-          armorIndex = 0;
-          slot = EquipmentSlot.FEET;
-        }
-        case 2 -> {
-          armorIndex = 1;
-          slot = EquipmentSlot.LEGS;
-        }
-        case 1 -> {
-          armorIndex = 2;
-          slot = EquipmentSlot.CHEST;
-        }
-        case 0 -> {
-          armorIndex = 3;
-          slot = EquipmentSlot.HEAD;
-        }
-        default -> {
-          // In the event that new armor slots are added, they can be placed at the end.
-          armorIndex = i;
-          slot = EquipmentSlot.MAINHAND;
-        }
+    // Armor slots go bottom to top; boots are first and helmet is last.
+    // Since we have to display horizontally due to space restrictions,
+    // making the left side the "top" is more user-friendly.
+    EquipmentSlot[] sorted = Inventory.EQUIPMENT_SLOT_MAPPING.int2ObjectEntrySet()
+        .stream()
+        .sorted(Comparator.comparingInt(Int2ObjectMap.Entry::getIntKey))
+        .map(Map.Entry::getValue)
+        .toArray(EquipmentSlot[]::new);
+    int localIndex = 0;
+    for (int i = sorted.length - 1; i >= 0; --i) {
+      // Skip off-hand, handled separately.
+      if (sorted[i] == EquipmentSlot.OFFHAND) {
+        continue;
       }
 
-      slots.set(startIndex + i, new ContentEquipment(owner, armorIndex, slot));
+      slots.set(startIndex + localIndex, new ContentEquipment(owner, sorted[i]));
+      ++localIndex;
     }
 
-    return startIndex + listSize;
+    return startIndex + localIndex;
   }
 
   private int addOffHand(int startIndex) {
-    int listSize = owner.getInventory().offhand.size();
-    for (int localIndex = 0; localIndex < listSize; ++localIndex) {
-      slots.set(startIndex + localIndex, new ContentOffHand(owner, localIndex));
+    // No off-hand?
+    if (!Inventory.EQUIPMENT_SLOT_MAPPING.containsValue(EquipmentSlot.OFFHAND)) {
+      return startIndex;
     }
-    return startIndex + listSize;
+
+    slots.set(startIndex, new ContentOffHand(owner));
+    return startIndex + 1;
   }
 
   private int addCrafting(int startIndex, boolean pretty) {
@@ -280,22 +268,22 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
   }
 
   @Override
-  public ItemStack getItem(int index) {
+  public @NotNull ItemStack getItem(int index) {
     return slots.get(index).get();
   }
 
   @Override
-  public ItemStack removeItem(int index, int amount) {
+  public @NotNull ItemStack removeItem(int index, int amount) {
     return slots.get(index).removePartial(amount);
   }
 
   @Override
-  public ItemStack removeItemNoUpdate(int index) {
+  public @NotNull ItemStack removeItemNoUpdate(int index) {
     return slots.get(index).remove();
   }
 
   @Override
-  public void setItem(int index, ItemStack itemStack) {
+  public void setItem(int index, @NotNull ItemStack itemStack) {
     slots.get(index).set(itemStack);
   }
 
@@ -327,17 +315,17 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
   }
 
   @Override
-  public void onOpen(CraftHumanEntity viewer) {
+  public void onOpen(@NotNull CraftHumanEntity viewer) {
     transaction.add(viewer);
   }
 
   @Override
-  public void onClose(CraftHumanEntity viewer) {
+  public void onClose(@NotNull CraftHumanEntity viewer) {
     transaction.remove(viewer);
   }
 
   @Override
-  public List<HumanEntity> getViewers() {
+  public @NotNull List<HumanEntity> getViewers() {
     return transaction;
   }
 

@@ -1,12 +1,12 @@
-package com.lishid.openinv.internal.common.container.menu;
+package com.lishid.openinv.internal.paper1_21_4.container.menu;
 
 import com.google.common.base.Preconditions;
-import com.lishid.openinv.internal.common.container.OpenInventory;
 import com.lishid.openinv.internal.common.container.bukkit.OpenDummyPlayerInventory;
-import com.lishid.openinv.internal.common.container.bukkit.OpenPlayerInventorySelf;
 import com.lishid.openinv.internal.common.container.slot.ContentDrop;
-import com.lishid.openinv.internal.common.container.slot.ContentEquipment;
 import com.lishid.openinv.internal.common.container.slot.SlotViewOnly;
+import com.lishid.openinv.internal.paper1_21_4.container.OpenInventory;
+import com.lishid.openinv.internal.paper1_21_4.container.bukkit.OpenPlayerInventorySelf;
+import com.lishid.openinv.internal.paper1_21_4.container.slot.ContentEquipment;
 import com.lishid.openinv.util.Permissions;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -35,16 +35,16 @@ public class OpenInventoryMenu extends OpenChestMenu<OpenInventory> {
     int size = inventory.getContainerSize();
     // Disallow duplicate access to own main inventory contents.
     if (inventory.getOwnerHandle().equals(viewer)) {
-      size -= viewer.getInventory().getNonEquipmentItems().size();
+      size -= viewer.getInventory().items.size();
       size = ((int) Math.ceil(size / 9.0)) * 9;
     }
 
-    return getChestMenuType(size);
+    return com.lishid.openinv.internal.common.container.menu.OpenChestMenu.getChestMenuType(size);
   }
 
   @Override
   protected void preSlotSetup() {
-    offset = ownContainer ? viewer.getInventory().getNonEquipmentItems().size() : 0;
+    offset = ownContainer ? viewer.getInventory().items.size() : 0;
   }
 
   @Override
@@ -221,7 +221,7 @@ public class OpenInventoryMenu extends OpenChestMenu<OpenInventory> {
         // If this is gear, try to move it to the correct slot first.
         case OFFHAND, FEET, LEGS, CHEST, HEAD -> {
           // Locate the correct slot in the contents following the main inventory.
-          for (int extra = container.getOwnerHandle().getInventory().getNonEquipmentItems().size() - offset; extra < topSize; ++extra) {
+          for (int extra = container.getOwnerHandle().getInventory().items.size() - offset; extra < topSize; ++extra) {
             Slot extraSlot = getSlot(extra);
             if (extraSlot instanceof ContentEquipment.SlotEquipment equipSlot
                 && equipSlot.getEquipmentSlot() == equipmentSlot) {
@@ -244,7 +244,7 @@ public class OpenInventoryMenu extends OpenChestMenu<OpenInventory> {
         }
       } else {
         // If we didn't move to a gear slot, try to move to a main inventory slot.
-        if (!movedGear && !this.moveItemStackTo(itemStack, 0, container.getOwnerHandle().getInventory().getNonEquipmentItems().size(), true)) {
+        if (!movedGear && !this.moveItemStackTo(itemStack, 0, container.getOwnerHandle().getInventory().items.size(), true)) {
           return ItemStack.EMPTY;
         }
       }
