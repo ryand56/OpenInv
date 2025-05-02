@@ -49,7 +49,7 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
   private final int size;
   protected ServerPlayer owner;
   private int maxStackSize = 99;
-  private CraftInventory bukkitEntity;
+  protected CraftInventory bukkitEntity;
   public List<HumanEntity> transaction = new ArrayList<>();
 
   public OpenInventory(@NotNull org.bukkit.entity.Player bukkitPlayer) {

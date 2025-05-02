@@ -7,6 +7,7 @@ import com.lishid.openinv.internal.common.container.slot.ContentList;
 import com.lishid.openinv.internal.common.container.slot.ContentViewOnly;
 import com.lishid.openinv.internal.common.container.slot.SlotViewOnly;
 import com.lishid.openinv.internal.common.container.slot.placeholder.Placeholders;
+import com.lishid.openinv.internal.paper1_21_4.container.bukkit.OpenPlayerInventory;
 import com.lishid.openinv.internal.paper1_21_4.container.menu.OpenInventoryMenu;
 import com.lishid.openinv.internal.paper1_21_4.container.slot.ContentEquipment;
 import com.lishid.openinv.internal.paper1_21_4.container.slot.ContentOffHand;
@@ -165,6 +166,14 @@ public class OpenInventory extends com.lishid.openinv.internal.common.container.
     }
 
     return startIndex + listSize;
+  }
+
+  @Override
+  public @NotNull org.bukkit.inventory.Inventory getBukkitInventory() {
+    if (bukkitEntity == null) {
+      bukkitEntity = new OpenPlayerInventory(this);
+    }
+    return bukkitEntity;
   }
 
   public @Nullable AbstractContainerMenu createMenu(Player player, int i, boolean viewOnly) {
