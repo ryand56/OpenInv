@@ -6,8 +6,8 @@ plugins {
 configurations.all {
   resolutionStrategy.capabilitiesResolution.withCapability("org.spigotmc:spigot-api") {
     val paper = candidates.firstOrNull {
-      it.id.let {
-        id -> id is ModuleComponentIdentifier && id.module == "paper-api"
+      it.id.let { id ->
+        id is ModuleComponentIdentifier && id.module == "paper-api"
       }
     }
     if (paper != null) {

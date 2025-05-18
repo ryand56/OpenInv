@@ -11,7 +11,7 @@ import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import java.nio.file.Paths
 
-class SpigotReobf: Plugin<Project> {
+class SpigotReobf : Plugin<Project> {
 
   companion object {
     const val ARTIFACT_CONFIG = "reobf"

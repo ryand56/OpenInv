@@ -80,12 +80,15 @@ public class OpenInventory extends com.lishid.openinv.internal.common.container.
         invIndex = localIndex - hotbarDiff;
       }
 
-      slots.set(localIndex, new ContentList(owner, invIndex, type) {
-        @Override
-        public void setHolder(@NotNull ServerPlayer holder) {
-          items = holder.getInventory().items;
-        }
-      });
+      slots.set(
+          localIndex,
+          new ContentList(owner, invIndex, type) {
+            @Override
+            public void setHolder(@NotNull ServerPlayer holder) {
+              items = holder.getInventory().items;
+            }
+          }
+      );
     }
     return listSize;
   }
@@ -152,16 +155,17 @@ public class OpenInventory extends com.lishid.openinv.internal.common.container.
 
     if (pretty) {
       slots.set(startIndex + 2, new ContentViewOnly(owner) {
-        @Override
-        public Slot asSlot(Container container, int slot, int x, int y) {
-          return new SlotViewOnly(container, slot, x, y) {
             @Override
-            public ItemStack getOrDefault() {
-              return Placeholders.craftingOutput;
+            public Slot asSlot(Container container, int slot, int x, int y) {
+              return new SlotViewOnly(container, slot, x, y) {
+                @Override
+                public ItemStack getOrDefault() {
+                  return Placeholders.craftingOutput;
+                }
+              };
             }
-          };
-        }
-      });
+          }
+      );
       slots.set(startIndex + 11, getCraftingResult(owner));
     }
 

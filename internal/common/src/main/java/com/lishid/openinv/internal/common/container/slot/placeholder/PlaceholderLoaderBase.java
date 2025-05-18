@@ -31,7 +31,8 @@ public abstract class PlaceholderLoaderBase {
       ItemStack typeItem = new ItemStack(Items.BARRIER);
       typeItem.set(
           DataComponents.ITEM_NAME,
-          Component.translatable("options.narrator.notavailable").append(" - ").append(type.getShortDisplayName()));
+          Component.translatable("options.narrator.notavailable").append(" - ").append(type.getShortDisplayName())
+      );
       Placeholders.BLOCKED_GAME_TYPE.put(type, typeItem);
     }
     Placeholders.craftingOutput = defaultCraftingOutput();
@@ -64,7 +65,8 @@ public abstract class PlaceholderLoaderBase {
   private @NotNull ItemStack parse(
       @Nullable ConfigurationSection section,
       @NotNull String path,
-      @NotNull ItemStack defaultStack) throws Exception {
+      @NotNull ItemStack defaultStack
+  ) throws Exception {
     if (section == null) {
       return defaultStack;
     }
@@ -108,7 +110,9 @@ public abstract class PlaceholderLoaderBase {
         new BannerPatternLayers(List.of(
             new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(halfDiagBottomRight), DyeColor.GRAY),
             new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(downRight), DyeColor.WHITE),
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(border), DyeColor.GRAY))));
+            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(border), DyeColor.GRAY)
+        ))
+    );
     addModelData(itemStack);
     hideTooltip(itemStack);
     return itemStack;
@@ -150,7 +154,9 @@ public abstract class PlaceholderLoaderBase {
             new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(topLeft), DyeColor.MAGENTA),
             new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(bottomLeft), DyeColor.MAGENTA),
             new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(topRight), DyeColor.BLACK),
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(bottomRight), DyeColor.BLACK))));
+            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(bottomRight), DyeColor.BLACK)
+        ))
+    );
     hideTooltip(itemStack);
     addModelData(itemStack);
     return itemStack;
@@ -170,7 +176,8 @@ public abstract class PlaceholderLoaderBase {
     itemStack.set(DataComponents.ITEM_NAME,
         Component.translatable("options.narrator.notavailable")
             .append(Component.literal(" - "))
-            .append(Component.translatable("gui.socialInteractions.status_offline")));
+            .append(Component.translatable("gui.socialInteractions.status_offline"))
+    );
     return itemStack;
   }
 

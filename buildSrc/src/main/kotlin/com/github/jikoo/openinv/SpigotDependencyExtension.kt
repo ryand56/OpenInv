@@ -3,7 +3,7 @@ package com.github.jikoo.openinv
 import org.gradle.api.model.ObjectFactory
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 
-abstract class SpigotDependencyExtension (
+abstract class SpigotDependencyExtension(
   objects: ObjectFactory
 ) {
 

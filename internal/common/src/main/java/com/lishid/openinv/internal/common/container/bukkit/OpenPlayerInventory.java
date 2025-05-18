@@ -84,7 +84,8 @@ public class OpenPlayerInventory extends CraftInventory implements PlayerInvento
     for (int index = 0; index < items.length; ++index) {
       getInventory().getOwnerHandle().getInventory().equipment.set(
           Inventory.EQUIPMENT_SLOTS_SORTED_BY_INDEX[index],
-          CraftItemStack.asNMSCopy(items[index]));
+          CraftItemStack.asNMSCopy(items[index])
+      );
     }
   }
 

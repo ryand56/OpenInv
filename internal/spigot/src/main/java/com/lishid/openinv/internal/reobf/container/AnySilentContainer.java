@@ -64,7 +64,8 @@ public class AnySilentContainer extends AnySilentContainerBase {
   public boolean activateContainer(
       @NotNull final Player bukkitPlayer,
       final boolean silentchest,
-      @NotNull final org.bukkit.block.Block bukkitBlock) {
+      @NotNull final org.bukkit.block.Block bukkitBlock
+  ) {
 
     // Silent ender chest is API-only
     if (silentchest && bukkitBlock.getType() == Material.ENDER_CHEST) {
@@ -87,11 +88,16 @@ public class AnySilentContainer extends AnySilentContainerBase {
       // Anychest ender chest. See net.minecraft.world.level.block.EnderChestBlock
       PlayerEnderChestContainer enderChest = player.getEnderChestInventory();
       enderChest.setActiveChest(enderChestTile);
-      player.openMenu(new SimpleMenuProvider((containerCounter, playerInventory, ignored) -> {
-        MenuType<?> containers = OpenChestMenu.getChestMenuType(enderChest.getContainerSize());
-        int rows = enderChest.getContainerSize() / 9;
-        return new ChestMenu(containers, containerCounter, playerInventory, enderChest, rows);
-      }, Component.translatable("container.enderchest")));
+      player.openMenu(
+          new SimpleMenuProvider(
+              (containerCounter, playerInventory, ignored) -> {
+                MenuType<?> containers = OpenChestMenu.getChestMenuType(enderChest.getContainerSize());
+                int rows = enderChest.getContainerSize() / 9;
+                return new ChestMenu(containers, containerCounter, playerInventory, enderChest, rows);
+              },
+              Component.translatable("container.enderchest")
+          )
+      );
       bukkitPlayer.incrementStatistic(Statistic.ENDERCHEST_OPENED);
       return true;
     }

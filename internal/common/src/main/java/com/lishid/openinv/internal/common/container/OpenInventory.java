@@ -112,12 +112,15 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
         invIndex = localIndex - hotbarDiff;
       }
 
-      slots.set(localIndex, new ContentList(owner, invIndex, type) {
-        @Override
-        public void setHolder(@NotNull ServerPlayer holder) {
-          items = holder.getInventory().getNonEquipmentItems();
-        }
-      });
+      slots.set(
+          localIndex,
+          new ContentList(owner, invIndex, type) {
+            @Override
+            public void setHolder(@NotNull ServerPlayer holder) {
+              items = holder.getInventory().getNonEquipmentItems();
+            }
+          }
+      );
     }
     return listSize;
   }
@@ -170,16 +173,17 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
 
     if (pretty) {
       slots.set(startIndex + 2, new ContentViewOnly(owner) {
-        @Override
-        public Slot asSlot(Container container, int slot, int x, int y) {
-          return new SlotViewOnly(container, slot, x, y) {
             @Override
-            public ItemStack getOrDefault() {
-              return Placeholders.craftingOutput;
+            public Slot asSlot(Container container, int slot, int x, int y) {
+              return new SlotViewOnly(container, slot, x, y) {
+                @Override
+                public ItemStack getOrDefault() {
+                  return Placeholders.craftingOutput;
+                }
+              };
             }
-          };
-        }
-      });
+          }
+      );
       slots.set(startIndex + 11, getCraftingResult(owner));
     }
 
@@ -245,7 +249,8 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
   }
 
   @Override
-  public void setPlayerOffline() {}
+  public void setPlayerOffline() {
+  }
 
   @Override
   public boolean isInUse() {
@@ -298,7 +303,8 @@ public class OpenInventory implements Container, InternalOwned<ServerPlayer>, IS
   }
 
   @Override
-  public void setChanged() {}
+  public void setChanged() {
+  }
 
   @Override
   public boolean stillValid(@NotNull Player player) {

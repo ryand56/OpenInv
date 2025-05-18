@@ -61,7 +61,8 @@ public abstract class OpenChestMenu<T extends Container & ISpecialInventory & In
       int containerCounter,
       @NotNull T container,
       @NotNull ServerPlayer viewer,
-      boolean viewOnly) {
+      boolean viewOnly
+  ) {
     super(type, containerCounter);
     this.container = container;
     this.viewer = viewer;
@@ -123,7 +124,8 @@ public abstract class OpenChestMenu<T extends Container & ISpecialInventory & In
     };
   }
 
-  protected void preSlotSetup() {}
+  protected void preSlotSetup() {
+  }
 
   protected @NotNull Slot getUpperSlot(int index, int x, int y) {
     Slot slot = new Slot(container, index, x, y);

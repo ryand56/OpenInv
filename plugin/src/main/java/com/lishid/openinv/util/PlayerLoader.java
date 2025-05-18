@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.profile.PlayerProfile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +20,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,7 +40,8 @@ public class PlayerLoader implements Listener {
       @NotNull Config config,
       @NotNull InventoryManager inventoryManager,
       @NotNull InternalAccessor internalAccessor,
-      @NotNull Logger logger) {
+      @NotNull Logger logger
+  ) {
     this.plugin = plugin;
     this.config = config;
     this.inventoryManager = inventoryManager;
@@ -207,28 +206,31 @@ public class PlayerLoader implements Listener {
       return;
     }
 
-    plugin.getScheduler().runTaskLaterAsynchronously(() -> {
-      Iterator<Map.Entry<String, PlayerProfile>> iterator = lookupCache.asMap().entrySet().iterator();
-      while (iterator.hasNext()) {
-        Map.Entry<String, PlayerProfile> entry = iterator.next();
-        String oldMatch = entry.getValue().getName();
+    plugin.getScheduler().runTaskLaterAsynchronously(
+        () -> {
+          Iterator<Map.Entry<String, PlayerProfile>> iterator = lookupCache.asMap().entrySet().iterator();
+          while (iterator.hasNext()) {
+            Map.Entry<String, PlayerProfile> entry = iterator.next();
+            String oldMatch = entry.getValue().getName();
 
-        // Shouldn't be possible - all profiles should be complete.
-        if (oldMatch == null) {
-          iterator.remove();
-          continue;
-        }
+            // Shouldn't be possible - all profiles should be complete.
+            if (oldMatch == null) {
+              iterator.remove();
+              continue;
+            }
 
-        String lookup = entry.getKey();
-        float oldMatchScore = StringMetric.compareJaroWinkler(lookup, oldMatch);
-        float newMatchScore = StringMetric.compareJaroWinkler(lookup, name);
+            String lookup = entry.getKey();
+            float oldMatchScore = StringMetric.compareJaroWinkler(lookup, oldMatch);
+            float newMatchScore = StringMetric.compareJaroWinkler(lookup, name);
 
-        // If new match exceeds old match, delete old match.
-        if (newMatchScore > oldMatchScore) {
-          iterator.remove();
-        }
-      }
-    }, 7L);
+            // If new match exceeds old match, delete old match.
+            if (newMatchScore > oldMatchScore) {
+              iterator.remove();
+            }
+          }
+        },
+        7L
+    );
   }
 
 }

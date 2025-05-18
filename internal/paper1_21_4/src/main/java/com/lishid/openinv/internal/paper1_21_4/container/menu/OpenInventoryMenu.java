@@ -133,8 +133,11 @@ public class OpenInventoryMenu extends OpenChestMenu<OpenInventory> {
         if (rawSlot == InventoryView.OUTSIDE || rawSlot == -1) {
           return null;
         }
-        Preconditions.checkArgument(rawSlot >= 0 && rawSlot < topSize + offset + BOTTOM_INVENTORY_SIZE,
-            "Slot %s outside of inventory", rawSlot);
+        Preconditions.checkArgument(
+            rawSlot >= 0 && rawSlot < topSize + offset + BOTTOM_INVENTORY_SIZE,
+            "Slot %s outside of inventory",
+            rawSlot
+        );
         if (rawSlot > topSize) {
           return getBottomInventory();
         }

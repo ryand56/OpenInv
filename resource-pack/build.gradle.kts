@@ -7,7 +7,7 @@ tasks.register<Zip>("buildResourcePack") {
   destinationDirectory = rootProject.layout.projectDirectory.dir("dist")
 
   from("openinv-legibility-pack")
-  with (copySpec {
+  with(copySpec {
     include("**/*.json", "**/*.png", "pack.mcmeta")
   })
 }

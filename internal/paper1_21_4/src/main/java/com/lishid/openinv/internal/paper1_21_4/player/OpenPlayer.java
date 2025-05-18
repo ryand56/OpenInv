@@ -10,8 +10,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class OpenPlayer extends com.lishid.openinv.internal.common.player.OpenPlayer {
 
-  protected OpenPlayer(CraftServer server, ServerPlayer entity,
-      PlayerManager manager) {
+  protected OpenPlayer(
+      CraftServer server, ServerPlayer entity,
+      PlayerManager manager
+  ) {
     super(server, entity, manager);
   }
 

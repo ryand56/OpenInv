@@ -17,8 +17,8 @@ rootProject.extra["craftbukkitPackage"] = "v1_21_R4"
 configurations.all {
   resolutionStrategy.capabilitiesResolution.withCapability("org.spigotmc:spigot-api") {
     val spigot = candidates.firstOrNull {
-      it.id.let {
-        id -> id is ModuleComponentIdentifier && id.module == "spigot-api"
+      it.id.let { id ->
+        id is ModuleComponentIdentifier && id.module == "spigot-api"
       }
     }
     if (spigot != null) {

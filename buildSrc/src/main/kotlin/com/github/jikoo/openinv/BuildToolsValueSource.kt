@@ -10,12 +10,12 @@ import java.net.URI
 import java.nio.file.Files
 import javax.inject.Inject
 
-abstract class BuildToolsValueSource: ValueSource<File, BuildToolsValueSource.Parameters> {
+abstract class BuildToolsValueSource : ValueSource<File, BuildToolsValueSource.Parameters> {
 
   @get:Inject
   abstract val exec: ExecOperations
 
-  interface Parameters: ValueSourceParameters {
+  interface Parameters : ValueSourceParameters {
     val mavenLocal: Property<File>
     val workingDir: DirectoryProperty
 
@@ -55,7 +55,8 @@ abstract class BuildToolsValueSource: ValueSource<File, BuildToolsValueSource.Pa
 
     if (!installLocation.exists()) {
       throw IllegalStateException(
-        "Failed to install Spigot $version from $revision. Does the revision point to a different version?")
+        "Failed to install Spigot $version from $revision. Does the revision point to a different version?"
+      )
     }
     return installLocation
   }
@@ -72,7 +73,8 @@ abstract class BuildToolsValueSource: ValueSource<File, BuildToolsValueSource.Pa
 
     workingDir.mkdirs()
 
-    val buildToolsUrl = "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
+    val buildToolsUrl =
+      "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
     println("Downloading $buildToolsUrl")
     val stream = URI.create(buildToolsUrl).toURL().openStream()
     Files.copy(stream, buildTools.toPath())

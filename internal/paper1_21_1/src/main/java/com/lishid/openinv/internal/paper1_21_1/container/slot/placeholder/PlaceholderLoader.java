@@ -28,11 +28,16 @@ public class PlaceholderLoader extends NumericDataPlaceholderLoader {
     BannerPattern halfDiagBottomRight = bannerPatterns.getOrThrow(BannerPatterns.DIAGONAL_RIGHT);
     BannerPattern downRight = bannerPatterns.getOrThrow(BannerPatterns.STRIPE_DOWNRIGHT);
     BannerPattern border = bannerPatterns.getOrThrow(BannerPatterns.BORDER);
-    itemStack.set(DataComponents.BANNER_PATTERNS,
-        new BannerPatternLayers(List.of(
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(halfDiagBottomRight), DyeColor.GRAY),
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(downRight), DyeColor.WHITE),
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(border), DyeColor.GRAY))));
+    itemStack.set(
+        DataComponents.BANNER_PATTERNS,
+        new BannerPatternLayers(
+            List.of(
+                new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(halfDiagBottomRight), DyeColor.GRAY),
+                new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(downRight), DyeColor.WHITE),
+                new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(border), DyeColor.GRAY)
+            )
+        )
+    );
     addModelData(itemStack);
     itemStack.set(DataComponents.HIDE_TOOLTIP, Unit.INSTANCE);
     return itemStack;
@@ -51,12 +56,16 @@ public class PlaceholderLoader extends NumericDataPlaceholderLoader {
     BannerPattern bottomLeft = bannerPatterns.getOrThrow(BannerPatterns.SQUARE_BOTTOM_LEFT);
     BannerPattern bottomRight = bannerPatterns.getOrThrow(BannerPatterns.SQUARE_BOTTOM_RIGHT);
     itemStack.set(DataComponents.BANNER_PATTERNS,
-        new BannerPatternLayers(List.of(
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(halfLeft), DyeColor.BLACK),
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(topLeft), DyeColor.MAGENTA),
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(bottomLeft), DyeColor.MAGENTA),
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(topRight), DyeColor.BLACK),
-            new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(bottomRight), DyeColor.BLACK))));
+        new BannerPatternLayers(
+            List.of(
+                new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(halfLeft), DyeColor.BLACK),
+                new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(topLeft), DyeColor.MAGENTA),
+                new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(bottomLeft), DyeColor.MAGENTA),
+                new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(topRight), DyeColor.BLACK),
+                new BannerPatternLayers.Layer(bannerPatterns.wrapAsHolder(bottomRight), DyeColor.BLACK)
+            )
+        )
+    );
     itemStack.set(DataComponents.HIDE_TOOLTIP, Unit.INSTANCE);
     addModelData(itemStack);
     return itemStack;

@@ -46,127 +46,139 @@ import java.util.Locale;
  */
 public class SearchEnchantCommand implements TabExecutor {
 
-    private final @NotNull LanguageManager lang;
+  private final @NotNull LanguageManager lang;
 
-    public SearchEnchantCommand(@NotNull LanguageManager lang) {
-        this.lang = lang;
+  public SearchEnchantCommand(@NotNull LanguageManager lang) {
+    this.lang = lang;
+  }
+
+  @Override
+  public boolean onCommand(
+      @NotNull CommandSender sender,
+      @NotNull Command command,
+      @NotNull String label,
+      @NotNull String[] args
+  ) {
+    if (args.length == 0) {
+      return false;
     }
 
-    @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (args.length == 0) {
-            return false;
+    Enchantment enchant = null;
+    int level = 0;
+
+    for (String argument : args) {
+      try {
+        level = Integer.parseInt(argument);
+        continue;
+      } catch (NumberFormatException ignored) {
+        // Not a level being specified.
+      }
+
+      argument = argument.toLowerCase(Locale.ENGLISH);
+      NamespacedKey key = NamespacedKey.fromString(argument);
+      if (key == null) {
+        continue;
+      }
+
+      Enchantment localEnchant = Registry.ENCHANTMENT.get(key);
+      if (localEnchant != null) {
+        enchant = localEnchant;
+      }
+    }
+
+    // Arguments not set correctly
+    if (level == 0 && enchant == null) {
+      return false;
+    }
+
+    StringBuilder players = new StringBuilder();
+    for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+      boolean flagInventory = containsEnchantment(player.getInventory(), enchant, level);
+      boolean flagEnder = containsEnchantment(player.getEnderChest(), enchant, level);
+
+      // No matches, continue
+      if (!flagInventory && !flagEnder) {
+        continue;
+      }
+
+      // Matches, append details
+      players.append(player.getName()).append(" (");
+      if (flagInventory) {
+        players.append("inv");
+      }
+      if (flagEnder) {
+        if (flagInventory) {
+          players.append(',');
         }
+        players.append("ender");
+      }
+      players.append("), ");
+    }
 
-        Enchantment enchant = null;
-        int level = 0;
+    if (!players.isEmpty()) {
+      // Matches found, delete trailing comma and space
+      players.delete(players.length() - 2, players.length());
+    } else {
+      lang.sendMessage(
+          sender,
+          "messages.info.player.noMatches",
+          new Replacement("%target%", (enchant != null ? enchant.getKey().toString() : "") + " >= " + level)
+      );
+      return true;
+    }
 
-        for (String argument : args) {
-            try {
-                level = Integer.parseInt(argument);
-                continue;
-            } catch (NumberFormatException ignored) {
-                // Not a level being specified.
-            }
+    lang.sendMessage(
+        sender,
+        "messages.info.player.matches",
+        new Replacement("%target%", (enchant != null ? enchant.getKey().toString() : "") + " >= " + level),
+        new Replacement("%detail%", players.toString())
+    );
+    return true;
+  }
 
-            argument = argument.toLowerCase(Locale.ENGLISH);
-            NamespacedKey key = NamespacedKey.fromString(argument);
-            if (key == null) {
-                continue;
-            }
-
-            Enchantment localEnchant = Registry.ENCHANTMENT.get(key);
-            if (localEnchant != null) {
-                enchant = localEnchant;
-            }
+  private boolean containsEnchantment(Inventory inventory, @Nullable Enchantment enchant, int minLevel) {
+    for (ItemStack item : inventory.getContents()) {
+      if (item == null || item.getType() == Material.AIR) {
+        continue;
+      }
+      if (enchant != null) {
+        if (item.containsEnchantment(enchant) && item.getEnchantmentLevel(enchant) >= minLevel) {
+          return true;
         }
-
-        // Arguments not set correctly
-        if (level == 0 && enchant == null) {
-            return false;
+      } else {
+        if (!item.hasItemMeta()) {
+          continue;
         }
-
-        StringBuilder players = new StringBuilder();
-        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-            boolean flagInventory = containsEnchantment(player.getInventory(), enchant, level);
-            boolean flagEnder = containsEnchantment(player.getEnderChest(), enchant, level);
-
-            // No matches, continue
-            if (!flagInventory && !flagEnder) {
-                continue;
-            }
-
-            // Matches, append details
-            players.append(player.getName()).append(" (");
-            if (flagInventory) {
-                players.append("inv");
-            }
-            if (flagEnder) {
-                if (flagInventory) {
-                    players.append(',');
-                }
-                players.append("ender");
-            }
-            players.append("), ");
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasEnchants()) {
+          continue;
         }
-
-        if (!players.isEmpty()) {
-            // Matches found, delete trailing comma and space
-            players.delete(players.length() - 2, players.length());
-        } else {
-            lang.sendMessage(
-                    sender,
-                    "messages.info.player.noMatches",
-                    new Replacement("%target%", (enchant != null ? enchant.getKey().toString() : "") + " >= " + level));
+        for (int enchLevel : meta.getEnchants().values()) {
+          if (enchLevel >= minLevel) {
             return true;
+          }
         }
+      }
+    }
+    return false;
+  }
 
-        lang.sendMessage(
-                sender,
-                "messages.info.player.matches",
-                new Replacement("%target%", (enchant != null ? enchant.getKey().toString() : "") + " >= " + level),
-                        new Replacement("%detail%", players.toString()));
-        return true;
+  @Override
+  public List<String> onTabComplete(
+      @NotNull CommandSender sender,
+      @NotNull Command command,
+      @NotNull String label,
+      @NotNull String[] args
+  ) {
+    if (!command.testPermissionSilent(sender) || args.length < 1 || args.length > 2) {
+      return Collections.emptyList();
     }
 
-    private boolean containsEnchantment(Inventory inventory, @Nullable Enchantment enchant, int minLevel) {
-        for (ItemStack item : inventory.getContents()) {
-            if (item == null || item.getType() == Material.AIR) {
-                continue;
-            }
-            if (enchant != null) {
-                if (item.containsEnchantment(enchant) && item.getEnchantmentLevel(enchant) >= minLevel) {
-                    return true;
-                }
-            } else {
-                if (!item.hasItemMeta()) {
-                    continue;
-                }
-                ItemMeta meta = item.getItemMeta();
-                if (meta == null || !meta.hasEnchants()) {
-                    continue;
-                }
-                for (int enchLevel : meta.getEnchants().values()) {
-                    if (enchLevel >= minLevel) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+    if (args.length == 1) {
+      return TabCompleter.completeObject(args[0], enchantment -> enchantment.getKey().toString(), Registry.ENCHANTMENT.stream().toArray(Enchantment[]::new));
+    } else {
+      return TabCompleter.completeInteger(args[1]);
     }
-
-    @Override
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!command.testPermissionSilent(sender) || args.length < 1 || args.length > 2) {
-            return Collections.emptyList();
-        }
-
-        if (args.length == 1) {
-            return TabCompleter.completeObject(args[0], enchantment -> enchantment.getKey().toString(), Registry.ENCHANTMENT.stream().toArray(Enchantment[]::new));
-        } else {
-            return TabCompleter.completeInteger(args[1]);
-        }
-    }
+  }
 
 }

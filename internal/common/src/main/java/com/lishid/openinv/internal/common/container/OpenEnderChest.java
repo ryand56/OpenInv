@@ -72,7 +72,8 @@ public class OpenEnderChest implements Container, StackedContentsCompatible, Int
   }
 
   @Override
-  public void setPlayerOffline() {}
+  public void setPlayerOffline() {
+  }
 
   @Override
   public @NotNull org.bukkit.entity.Player getPlayer() {

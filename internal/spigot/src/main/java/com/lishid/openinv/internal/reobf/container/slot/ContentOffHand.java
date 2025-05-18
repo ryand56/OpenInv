@@ -40,7 +40,8 @@ public class ContentOffHand extends ContentEquipment {
                   holder.inventoryMenu.containerId,
                   holder.inventoryMenu.incrementStateId(),
                   InventoryMenu.SHIELD_SLOT,
-                  holder.getOffhandItem()));
+                  holder.getOffhandItem()
+              ));
         }
       }
     };

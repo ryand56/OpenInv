@@ -109,7 +109,8 @@ public class OpenDummyInventory extends CraftInventory implements ViewOnly {
   @SuppressWarnings("NonApiType")
   @Override
   public @NotNull HashMap<Integer, ItemStack> all(
-      @NotNull Material material) throws IllegalArgumentException {
+      @NotNull Material material
+  ) throws IllegalArgumentException {
     return new HashMap<>();
   }
 

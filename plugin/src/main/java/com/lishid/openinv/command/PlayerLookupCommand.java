@@ -34,7 +34,8 @@ public abstract class PlayerLookupCommand implements TabExecutor {
       @NotNull OpenInv plugin,
       @NotNull LanguageManager lang,
       @NotNull Config config,
-      @NotNull PlayerLoader playerLoader) {
+      @NotNull PlayerLoader playerLoader
+  ) {
     this.plugin = plugin;
     this.lang = lang;
     this.config = config;
@@ -46,7 +47,8 @@ public abstract class PlayerLookupCommand implements TabExecutor {
       @NotNull CommandSender sender,
       @NotNull Command command,
       @NotNull String label,
-      @NotNull String @NotNull [] args) {
+      @NotNull String @NotNull [] args
+  ) {
 
     // Inventory or ender chest?
     boolean accessInv = isAccessInventory(command);
@@ -110,7 +112,11 @@ public abstract class PlayerLookupCommand implements TabExecutor {
    * @param accessInv {@code true} if an inventory is being accessed, {@code false} for ender chest
    * @return an updated target identifier or {@code null} if no target is available
    */
-  protected abstract @Nullable String getTargetIdentifer(@NotNull CommandSender sender, @Nullable String argument, boolean accessInv);
+  protected abstract @Nullable String getTargetIdentifer(
+      @NotNull CommandSender sender,
+      @Nullable String argument,
+      boolean accessInv
+  );
 
   /**
    * Get an {@link OfflinePlayer} by identifier.
@@ -189,7 +195,11 @@ public abstract class PlayerLookupCommand implements TabExecutor {
    * @param accessInv {@code true} to use inventory permissions, {@code false} for ender chest
    * @return {@code true} if the sender does not have the correct execution-specific permission
    */
-  protected abstract boolean deniedCommand(@NotNull CommandSender sender, @NotNull Player onlineTarget, boolean accessInv);
+  protected abstract boolean deniedCommand(
+      @NotNull CommandSender sender,
+      @NotNull Player onlineTarget,
+      boolean accessInv
+  );
 
   /**
    * Check for a lack of generalized permissions for accessing the target.
@@ -212,7 +222,8 @@ public abstract class PlayerLookupCommand implements TabExecutor {
         lang.sendMessage(
             sender,
             "messages.error.permissionExempt",
-            new Replacement("%target%", onlineTarget.getDisplayName()));
+            new Replacement("%target%", onlineTarget.getDisplayName())
+        );
         return true;
       }
     }
@@ -224,7 +235,8 @@ public abstract class PlayerLookupCommand implements TabExecutor {
       lang.sendMessage(
           sender,
           "messages.error.permissionCrossWorld",
-          new Replacement("%target%", onlineTarget.getDisplayName()));
+          new Replacement("%target%", onlineTarget.getDisplayName())
+      );
       return true;
     }
 
@@ -243,14 +255,16 @@ public abstract class PlayerLookupCommand implements TabExecutor {
       @NotNull CommandSender sender,
       @NotNull Player target,
       boolean accessInv,
-      @NotNull String @NotNull [] args);
+      @NotNull String @NotNull [] args
+  );
 
   @Override
   public List<String> onTabComplete(
       @NotNull CommandSender sender,
       @NotNull Command command,
       @NotNull String label,
-      @NotNull String[] args) {
+      @NotNull String[] args
+  ) {
     if (!command.testPermissionSilent(sender) || args.length != 1) {
       return Collections.emptyList();
     }

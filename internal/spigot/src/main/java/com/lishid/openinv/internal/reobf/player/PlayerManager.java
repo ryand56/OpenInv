@@ -93,11 +93,13 @@ public class PlayerManager implements com.lishid.openinv.internal.PlayerManager 
   private @NotNull ServerPlayer createNewPlayer(
       @NotNull MinecraftServer server,
       @NotNull ServerLevel worldServer,
-      @NotNull final OfflinePlayer offline) {
+      @NotNull final OfflinePlayer offline
+  ) {
     // See net.minecraft.server.players.PlayerList#canPlayerLogin(ServerLoginPacketListenerImpl, GameProfile)
     // See net.minecraft.server.network.ServerLoginPacketListenerImpl#handleHello(ServerboundHelloPacket)
     GameProfile profile = new GameProfile(offline.getUniqueId(),
-        offline.getName() != null ? offline.getName() : offline.getUniqueId().toString());
+        offline.getName() != null ? offline.getName() : offline.getUniqueId().toString()
+    );
 
     ClientInformation dummyInfo = new ClientInformation(
         "en_us",
@@ -119,7 +121,8 @@ public class PlayerManager implements com.lishid.openinv.internal.PlayerManager 
       logger.log(
           java.util.logging.Level.WARNING,
           e,
-          () -> "Unable to inject ServerPlayer, certain player data may be lost when saving!");
+          () -> "Unable to inject ServerPlayer, certain player data may be lost when saving!"
+      );
     }
 
     return entity;
@@ -167,13 +170,17 @@ public class PlayerManager implements com.lishid.openinv.internal.PlayerManager 
       logger.log(
           java.util.logging.Level.WARNING,
           e,
-          () -> "Unable to inject ServerPlayer, certain player data may be lost when saving!");
+          () -> "Unable to inject ServerPlayer, certain player data may be lost when saving!"
+      );
       return player;
     }
   }
 
   @Override
-  public @Nullable InventoryView openInventory(@NotNull Player bukkitPlayer, @NotNull ISpecialInventory inventory, boolean viewOnly) {
+  public @Nullable InventoryView openInventory(
+      @NotNull Player bukkitPlayer, @NotNull ISpecialInventory inventory,
+      boolean viewOnly
+  ) {
     ServerPlayer player = getHandle(bukkitPlayer);
 
     if (!OpenPlayer.isConnected(player.connection)) {

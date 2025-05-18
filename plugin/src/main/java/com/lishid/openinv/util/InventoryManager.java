@@ -115,19 +115,25 @@ public class InventoryManager implements Listener {
   @Keep
   @EventHandler(priority = EventPriority.LOWEST)
   private void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-    consumeLoaded(event.getPlayer().getUniqueId(), inventory -> {
-      inventory.setPlayerOnline(event.getPlayer());
-      checkViewerAccess(inventory, true);
-    });
+    consumeLoaded(
+        event.getPlayer().getUniqueId(),
+        inventory -> {
+          inventory.setPlayerOnline(event.getPlayer());
+          checkViewerAccess(inventory, true);
+        }
+    );
   }
 
   @Keep
   @EventHandler(priority = EventPriority.MONITOR)
   private void onPlayerQuit(@NotNull PlayerQuitEvent event) {
-    consumeLoaded(event.getPlayer().getUniqueId(), inventory -> {
-      inventory.setPlayerOffline();
-      checkViewerAccess(inventory, false);
-    });
+    consumeLoaded(
+        event.getPlayer().getUniqueId(),
+        inventory -> {
+          inventory.setPlayerOffline();
+          checkViewerAccess(inventory, false);
+        }
+    );
   }
 
   @Keep
@@ -199,7 +205,8 @@ public class InventoryManager implements Listener {
       plugin.getLogger().log(
           Level.WARNING,
           "Prevented a plugin from opening an untracked ISpecialInventory!",
-          new Throwable("Untracked ISpecialInventory"));
+          new Throwable("Untracked ISpecialInventory")
+      );
     }
   }
 
@@ -240,7 +247,8 @@ public class InventoryManager implements Listener {
       @NotNull Map<UUID, T> map,
       @NotNull UUID key,
       boolean saved,
-      @NotNull Consumer<@NotNull ISpecialInventory> consumer) {
+      @NotNull Consumer<@NotNull ISpecialInventory> consumer
+  ) {
     T inventory = map.get(key);
 
     if (inventory == null) {

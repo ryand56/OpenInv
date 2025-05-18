@@ -14,7 +14,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
-abstract class SpigotReobfTask: org.gradle.api.tasks.bundling.Jar() {
+abstract class SpigotReobfTask : org.gradle.api.tasks.bundling.Jar() {
 
   @get:Input
   val spigotVersion: Property<String> = objectFactory.property(String::class.java)

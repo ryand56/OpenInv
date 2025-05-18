@@ -8,7 +8,7 @@ import org.gradle.kotlin.dsl.create
 import java.nio.file.Paths
 import javax.inject.Inject
 
-abstract class SpigotSetup: Plugin<Project> {
+abstract class SpigotSetup : Plugin<Project> {
 
   @get:Inject
   abstract val javaToolchainService: JavaToolchainService
@@ -51,7 +51,8 @@ abstract class SpigotSetup: Plugin<Project> {
         spigotExt.version.get(),
         spigotExt.configuration.orNull,
         spigotExt.classifier.orNull,
-        spigotExt.ext.orNull)
+        spigotExt.ext.orNull
+      )
       target.dependencies.add("compileOnly", dependency)
     }
   }

@@ -1,7 +1,10 @@
 ## About
-OpenInv is a [Bukkit plugin](https://dev.bukkit.org/projects/openinv) which allows users to open and edit anyone's inventory or ender chest - online or not!
+
+OpenInv is a [Bukkit plugin](https://dev.bukkit.org/projects/openinv) which allows users to open and edit anyone's
+inventory or ender chest - online or not!
 
 ## Features
+
 - **OpenInv**: Open anyone's inventory, even if they're offline.
   - Read-only mode! Don't grant edit permission.
   - Cross-world support! Allow access only from the same world.
@@ -16,15 +19,19 @@ OpenInv is a [Bukkit plugin](https://dev.bukkit.org/projects/openinv) which allo
 - **AnyContainer**: Open containers, even if blocked by ocelots or blocks.
 
 ## Commands
+
 See [the wiki](https://github.com/Jikoo/OpenInv/wiki/Commands).
 
 ## Permissions
+
 See [the wiki](https://github.com/Jikoo/OpenInv/wiki/Permissions)
 
 ## For Developers
 
 ### As a Dependency
+
 The OpenInv API is available via [JitPack](https://jitpack.io/).
+
 ```xml
   <repositories>
     <repository>
@@ -33,6 +40,7 @@ The OpenInv API is available via [JitPack](https://jitpack.io/).
     </repository>
   </repositories>
 ```
+
 ```xml
   <dependencies>
     <dependency>
@@ -42,9 +50,12 @@ The OpenInv API is available via [JitPack](https://jitpack.io/).
     </dependency>
   </dependencies>
 ```
-Note that since JitPack only builds the API now, the "full" OpenInv jar on JitPack is actually the openinvapi artifact. This is a change from previous dependency declaration that I hope to revert.
+
+Note that since JitPack only builds the API now, the "full" OpenInv jar on JitPack is actually the openinvapi artifact.
+This is a change from previous dependency declaration that I hope to revert.
 
 ### Compilation
+
 Execute the gradle wrapper:  
 `./gradlew build`
 

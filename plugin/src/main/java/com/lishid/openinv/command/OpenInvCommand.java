@@ -39,139 +39,139 @@ import java.util.logging.Level;
 
 public class OpenInvCommand extends PlayerLookupCommand {
 
-    private final @NotNull InventoryManager manager;
-    private final Map<Player, String> openInvHistory = new WeakHashMap<>();
-    private final Map<Player, String> openEnderHistory = new WeakHashMap<>();
+  private final @NotNull InventoryManager manager;
+  private final Map<Player, String> openInvHistory = new WeakHashMap<>();
+  private final Map<Player, String> openEnderHistory = new WeakHashMap<>();
 
-    public OpenInvCommand(
-            @NotNull OpenInv plugin,
-            @NotNull Config config,
-            @NotNull InventoryManager manager,
-            @NotNull LanguageManager lang,
-            @NotNull PlayerLoader playerLoader
-    ) {
-        super(plugin, lang, config, playerLoader);
-        this.manager = manager;
+  public OpenInvCommand(
+      @NotNull OpenInv plugin,
+      @NotNull Config config,
+      @NotNull InventoryManager manager,
+      @NotNull LanguageManager lang,
+      @NotNull PlayerLoader playerLoader
+  ) {
+    super(plugin, lang, config, playerLoader);
+    this.manager = manager;
+  }
+
+  @Override
+  protected boolean isAccessInventory(@NotNull Command command) {
+    return command.getName().equals("openinv");
+  }
+
+  @Override
+  protected @Nullable String getTargetIdentifer(
+      @NotNull CommandSender sender,
+      @Nullable String argument,
+      boolean accessInv
+  ) {
+    // /openinv help
+    if (accessInv && argument != null && (argument.equalsIgnoreCase("help") || argument.equals("?"))) {
+      this.showHelp(sender);
+      return null;
     }
 
-    @Override
-    protected boolean isAccessInventory(@NotNull Command command) {
-        return command.getName().equals("openinv");
+    // Command is player-only.
+    if (!(sender instanceof Player player)) {
+      lang.sendMessage(sender, "messages.error.consoleUnsupported");
+      return null;
     }
 
-    @Override
-    protected @Nullable String getTargetIdentifer(
-            @NotNull CommandSender sender,
-            @Nullable String argument,
-            boolean accessInv
-    ) {
-        // /openinv help
-        if (accessInv && argument != null && (argument.equalsIgnoreCase("help") || argument.equals("?"))) {
-            this.showHelp(sender);
-            return null;
-        }
-
-        // Command is player-only.
-        if (!(sender instanceof Player player)) {
-            lang.sendMessage(sender, "messages.error.consoleUnsupported");
-            return null;
-        }
-
-        // Use fallthrough for no name provided.
-        if (argument == null) {
-            if (config.doesNoArgsOpenSelf()) {
-                return player.getUniqueId().toString();
-            }
-            return (accessInv ? this.openInvHistory : this.openEnderHistory)
-                .computeIfAbsent(player, localPlayer -> localPlayer.getUniqueId().toString());
-        }
-
-        if (!config.doesNoArgsOpenSelf()) {
-            // History management
-            (accessInv ? this.openInvHistory : this.openEnderHistory).put(player, argument);
-        }
-
-        return argument;
+    // Use fallthrough for no name provided.
+    if (argument == null) {
+      if (config.doesNoArgsOpenSelf()) {
+        return player.getUniqueId().toString();
+      }
+      return (accessInv ? this.openInvHistory : this.openEnderHistory)
+          .computeIfAbsent(player, localPlayer -> localPlayer.getUniqueId().toString());
     }
 
-    private void showHelp(@NotNull CommandSender sender) {
-        // Get registered commands
-        for (String commandName : plugin.getDescription().getCommands().keySet()) {
-            PluginCommand command = plugin.getCommand(commandName);
-
-            // Ensure command is successfully registered and sender can use it
-            if (command == null  || !command.testPermissionSilent(sender)) {
-                continue;
-            }
-
-            // Send usage
-            sender.sendMessage(command.getUsage().replace("<command>", commandName));
-
-            List<String> aliases = command.getAliases();
-            if (!aliases.isEmpty()) {
-                // Assemble alias list
-                StringJoiner aliasJoiner = new StringJoiner(", ", "   (aliases: ", ")");
-                for (String alias : aliases) {
-                    aliasJoiner.add(alias);
-                }
-
-                // Send all aliases
-                sender.sendMessage(aliasJoiner.toString());
-            }
-
-        }
+    if (!config.doesNoArgsOpenSelf()) {
+      // History management
+      (accessInv ? this.openInvHistory : this.openEnderHistory).put(player, argument);
     }
 
-    @Override
-    protected @Nullable OfflinePlayer getTarget(@NotNull String identifier) {
-        return playerLoader.match(identifier);
-    }
+    return argument;
+  }
 
-    @Override
-    protected boolean deniedCommand(@NotNull CommandSender sender, @NotNull Player onlineTarget, boolean accessInv) {
-        if (onlineTarget.equals(sender)) {
-            // Permission for opening own inventory.
-            if (!(accessInv ? Permissions.INVENTORY_OPEN_SELF : Permissions.ENDERCHEST_OPEN_SELF).hasPermission(sender)) {
-                lang.sendMessage(sender, "messages.error.permissionOpenSelf");
-                return true;
+  private void showHelp(@NotNull CommandSender sender) {
+    // Get registered commands
+    for (String commandName : plugin.getDescription().getCommands().keySet()) {
+      PluginCommand command = plugin.getCommand(commandName);
 
-            }
-        } else {
-            // Permission for opening others' inventories.
-            if (!(accessInv ? Permissions.INVENTORY_OPEN_OTHER : Permissions.ENDERCHEST_OPEN_OTHER).hasPermission(sender)) {
-                lang.sendMessage(sender, "messages.error.permissionOpenOther");
-                return true;
-            }
+      // Ensure command is successfully registered and sender can use it
+      if (command == null || !command.testPermissionSilent(sender)) {
+        continue;
+      }
+
+      // Send usage
+      sender.sendMessage(command.getUsage().replace("<command>", commandName));
+
+      List<String> aliases = command.getAliases();
+      if (!aliases.isEmpty()) {
+        // Assemble alias list
+        StringJoiner aliasJoiner = new StringJoiner(", ", "   (aliases: ", ")");
+        for (String alias : aliases) {
+          aliasJoiner.add(alias);
         }
 
-        return false;
+        // Send all aliases
+        sender.sendMessage(aliasJoiner.toString());
+      }
+
+    }
+  }
+
+  @Override
+  protected @Nullable OfflinePlayer getTarget(@NotNull String identifier) {
+    return playerLoader.match(identifier);
+  }
+
+  @Override
+  protected boolean deniedCommand(@NotNull CommandSender sender, @NotNull Player onlineTarget, boolean accessInv) {
+    if (onlineTarget.equals(sender)) {
+      // Permission for opening own inventory.
+      if (!(accessInv ? Permissions.INVENTORY_OPEN_SELF : Permissions.ENDERCHEST_OPEN_SELF).hasPermission(sender)) {
+        lang.sendMessage(sender, "messages.error.permissionOpenSelf");
+        return true;
+
+      }
+    } else {
+      // Permission for opening others' inventories.
+      if (!(accessInv ? Permissions.INVENTORY_OPEN_OTHER : Permissions.ENDERCHEST_OPEN_OTHER).hasPermission(sender)) {
+        lang.sendMessage(sender, "messages.error.permissionOpenOther");
+        return true;
+      }
     }
 
-    @Override
-    protected void handle(
-            @NotNull CommandSender sender,
-            @NotNull Player target,
-            boolean accessInv,
-            @NotNull String @NotNull [] args
-    ) {
-        Player player = (Player) sender;
-        if (!config.doesNoArgsOpenSelf()) {
-            // Record the target
-            (accessInv ? this.openInvHistory : this.openEnderHistory).put(player, target.getUniqueId().toString());
-        }
+    return false;
+  }
 
-        // Create the inventory
-        final ISpecialInventory inv;
-        try {
-            inv = accessInv ? manager.getInventory(target) : manager.getEnderChest(target);
-        } catch (Exception e) {
-            lang.sendMessage(player, "messages.error.commandException");
-            plugin.getLogger().log(Level.WARNING, "Unable to create ISpecialInventory", e);
-            return;
-        }
-
-        // Open the inventory
-        plugin.openInventory(player, inv);
+  @Override
+  protected void handle(
+      @NotNull CommandSender sender,
+      @NotNull Player target,
+      boolean accessInv,
+      @NotNull String @NotNull [] args
+  ) {
+    Player player = (Player) sender;
+    if (!config.doesNoArgsOpenSelf()) {
+      // Record the target
+      (accessInv ? this.openInvHistory : this.openEnderHistory).put(player, target.getUniqueId().toString());
     }
+
+    // Create the inventory
+    final ISpecialInventory inv;
+    try {
+      inv = accessInv ? manager.getInventory(target) : manager.getEnderChest(target);
+    } catch (Exception e) {
+      lang.sendMessage(player, "messages.error.commandException");
+      plugin.getLogger().log(Level.WARNING, "Unable to create ISpecialInventory", e);
+      return;
+    }
+
+    // Open the inventory
+    plugin.openInventory(player, inv);
+  }
 
 }

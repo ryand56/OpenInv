@@ -145,7 +145,8 @@ public class OpenPlayer extends CraftPlayer {
       @NotNull CompoundTag target,
       @NotNull String container,
       @NotNull String key,
-      @SuppressWarnings("SameParameterValue") @NotNull Class<T> tagType) {
+      @SuppressWarnings("SameParameterValue") @NotNull Class<T> tagType
+  ) {
     CompoundTag oldContainer = getTag(source, container, CompoundTag.class);
     CompoundTag newContainer = getTag(target, container, CompoundTag.class);
 
@@ -161,7 +162,8 @@ public class OpenPlayer extends CraftPlayer {
   private <T extends Tag> @Nullable T getTag(
       @Nullable CompoundTag container,
       @NotNull String key,
-      @NotNull Class<T> dataType) {
+      @NotNull Class<T> dataType
+  ) {
     if (container == null) {
       return null;
     }
@@ -175,7 +177,8 @@ public class OpenPlayer extends CraftPlayer {
   private <T extends Tag> void setTag(
       @NotNull CompoundTag container,
       @NotNull String key,
-      @Nullable T data) {
+      @Nullable T data
+  ) {
     if (data == null) {
       container.remove(key);
     } else {

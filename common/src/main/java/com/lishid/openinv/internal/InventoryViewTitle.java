@@ -25,13 +25,15 @@ public enum InventoryViewTitle {
   public @NotNull String getTitle(
       @NotNull LanguageManager lang,
       @NotNull Player viewer,
-      @NotNull ISpecialInventory inventory) {
+      @NotNull ISpecialInventory inventory
+  ) {
     HumanEntity owner = inventory.getPlayer();
 
     String localTitle = lang.getLocalizedMessage(
-            viewer,
-            localizationKey,
-            new Replacement("%player%", owner.getName()));
+        viewer,
+        localizationKey,
+        new Replacement("%player%", owner.getName())
+    );
     return Objects.requireNonNullElseGet(localTitle, () -> owner.getName() + defaultSuffix);
   }
 
