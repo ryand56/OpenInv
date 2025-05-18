@@ -51,6 +51,11 @@ permissions:
               openinv.enderchest.edit.other:
                 children:
                   openinv.enderchest.open.other: true
+      # Clear nodes (/clearinv and /clearender)
+      openinv.clear:
+        children:
+          openinv.clear.self: true
+          openinv.clear.other: true
       # Player access
       openinv.access:
         children:
@@ -83,12 +88,22 @@ commands:
     permission: openinv.inventory.open.self;openinv.inventory.open.other
     usage: |-
            /<command> [Player] - Open a player's inventory
+  clearinv:
+    description: Clear a player's inventory
+    permission: openinv.clear.self;openinv.clear.other
+    usage: |-
+           /<command> [Player] - Clear a player's inventory
   openender:
     aliases: [oe]
-    description: Opens the enderchest of a player
+    description: Open a player's ender chest
     permission: openinv.enderchest.open.self;openinv.enderchest.open.other
     usage: |-
-           /<command> [Player] - Open a player's enderchest
+           /<command> [Player] - Open a player's ender chest
+  clearender:
+    description: Clear a player's ender chest
+    permission: openinv.clear.self;openinv.clear.other
+    usage: |-
+           /<command> [Player] - Clear a player's ender chest
   searchinv:
     aliases: [si]
     description: Search and list players having a specific item
@@ -98,7 +113,7 @@ commands:
   searchender:
     aliases: [se]
     permission: openinv.search.inventory
-    description: Searches and lists players having a specific item in their ender chest
+    description: Search and list players having a specific item in their ender chest
     usage: |-
            /<command> <Material> [MinAmount] - MinAmount is optional, the minimum amount required
   silentcontainer:
