@@ -1,5 +1,6 @@
 plugins {
   `java-library`
+  id("net.ltgt.errorprone")
 }
 
 java {
@@ -16,6 +17,7 @@ dependencies {
   val libs = versionCatalogs.named("libs")
   compileOnly(libs.findLibrary("annotations").orElseThrow())
   compileOnly(libs.findLibrary("spigotapi").orElseThrow())
+  errorprone(libs.findLibrary("errorprone-core").orElseThrow())
 }
 
 tasks {

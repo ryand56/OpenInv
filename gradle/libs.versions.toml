@@ -6,6 +6,8 @@ annotations = "26.0.2"
 paperweight = "2.0.0-beta.16"
 shadow = "8.3.6"
 folia-scheduler-wrapper = "v0.0.3"
+errorprone-core = "2.38.0"
+errorprone-gradle = "4.2.0"
 
 [libraries]
 spigotapi = { module = "org.spigotmc:spigot-api", version.ref = "spigotapi" }
@@ -13,7 +15,10 @@ specialsource = { module = "net.md-5:SpecialSource", version.ref = "specialsourc
 planarwrappers = { module = "com.github.jikoo:planarwrappers", version.ref = "planarwrappers" }
 annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
 folia-scheduler-wrapper = { module = "com.github.NahuLD.folia-scheduler-wrapper:folia-scheduler-wrapper", version.ref = "folia-scheduler-wrapper" }
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone-core" }
+errorprone-gradle = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version.ref = "errorprone-gradle" }
 
 [plugins]
 paperweight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+errorprone-gradle = { id = "net.ltgt.errorprone", version.ref = "errorprone-gradle" }
