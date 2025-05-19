@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 /**
  * An extension of {@link AbstractContainerMenu} that supports {@link SlotPlaceholder placeholders}.
  */
+@SuppressWarnings("HidingField")
 public abstract class OpenChestMenu<T extends Container & ISpecialInventory & InternalOwned<ServerPlayer>>
     extends AbstractContainerMenu {
 

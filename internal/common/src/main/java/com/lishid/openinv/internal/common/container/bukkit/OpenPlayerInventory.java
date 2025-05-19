@@ -174,12 +174,14 @@ public class OpenPlayerInventory extends CraftInventory implements PlayerInvento
         .set(EquipmentSlot.OFFHAND, CraftItemStack.asNMSCopy(item));
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Deprecated
   @Override
   public @NotNull ItemStack getItemInHand() {
     return getItemInMainHand();
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Deprecated
   @Override
   public void setItemInHand(@Nullable ItemStack stack) {

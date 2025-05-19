@@ -111,6 +111,7 @@ public class OpenDummyPlayerInventory extends OpenDummyInventory implements Play
 
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Deprecated
   @Override
   public @NotNull ItemStack getItemInHand() {

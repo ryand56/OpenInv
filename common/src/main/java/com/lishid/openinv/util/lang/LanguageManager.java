@@ -278,8 +278,8 @@ public class LanguageManager {
   }
 
   private @NotNull String getLocale(@NotNull CommandSender sender) {
-    if (sender instanceof Player) {
-      return ((Player) sender).getLocale();
+    if (sender instanceof Player player) {
+      return player.getLocale();
     } else {
       return plugin.getConfig().getString("settings.locale", "en");
     }

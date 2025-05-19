@@ -151,12 +151,14 @@ public class OpenPlayerInventory extends CraftInventory implements PlayerInvento
     getInventory().getOwnerHandle().getBukkitEntity().getInventory().setItemInOffHand(item);
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Deprecated
   @Override
   public @NotNull ItemStack getItemInHand() {
     return getItemInMainHand();
   }
 
+  @SuppressWarnings("InlineMeSuggester")
   @Deprecated
   @Override
   public void setItemInHand(@Nullable ItemStack stack) {

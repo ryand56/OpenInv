@@ -21,6 +21,7 @@ public class PlayerManager extends com.lishid.openinv.internal.common.player.Pla
     super(logger);
   }
 
+  @Override
   protected void parseWorld(@NotNull ServerPlayer player, @NotNull CompoundTag loadedData) {
     // See PlayerList#placeNewPlayer
     World bukkitWorld;
@@ -58,6 +59,7 @@ public class PlayerManager extends com.lishid.openinv.internal.common.player.Pla
     }
   }
 
+  @Override
   protected void injectPlayer(ServerPlayer player) throws IllegalAccessException {
     if (bukkitEntity == null) {
       return;

@@ -180,6 +180,7 @@ public class OpenInventory extends com.lishid.openinv.internal.common.container.
     return bukkitEntity;
   }
 
+  @Override
   public @Nullable AbstractContainerMenu createMenu(Player player, int i, boolean viewOnly) {
     if (player instanceof ServerPlayer serverPlayer) {
       return new OpenInventoryMenu(this, serverPlayer, i, viewOnly);

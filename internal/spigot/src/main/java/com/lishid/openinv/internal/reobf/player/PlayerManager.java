@@ -47,15 +47,15 @@ public class PlayerManager implements com.lishid.openinv.internal.PlayerManager 
   }
 
   public static @NotNull ServerPlayer getHandle(final Player player) {
-    if (player instanceof CraftPlayer) {
-      return ((CraftPlayer) player).getHandle();
+    if (player instanceof CraftPlayer craftPlayer) {
+      return craftPlayer.getHandle();
     }
 
     Server server = player.getServer();
     ServerPlayer nmsPlayer = null;
 
-    if (server instanceof CraftServer) {
-      nmsPlayer = ((CraftServer) server).getHandle().getPlayer(player.getUniqueId());
+    if (server instanceof CraftServer craftServer) {
+      nmsPlayer = craftServer.getHandle().getPlayer(player.getUniqueId());
     }
 
     if (nmsPlayer == null) {

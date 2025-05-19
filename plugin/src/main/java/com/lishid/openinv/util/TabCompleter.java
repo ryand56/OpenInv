@@ -20,6 +20,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,13 +41,13 @@ public final class TabCompleter {
    * @param argument the argument to complete
    * @return integer options
    */
-  public static List<String> completeInteger(String argument) {
+  public static @NotNull @Unmodifiable List<String> completeInteger(@NotNull String argument) {
     // Ensure existing argument is actually a number
     if (!argument.isEmpty()) {
       try {
         Integer.parseInt(argument);
       } catch (NumberFormatException e) {
-        return Collections.emptyList();
+        return List.of();
       }
     }
 
@@ -53,7 +56,7 @@ public final class TabCompleter {
       completions.add(argument + i);
     }
 
-    return completions;
+    return Collections.unmodifiableList(completions);
   }
 
   /**
@@ -63,7 +66,10 @@ public final class TabCompleter {
    * @param enumClazz the Enum to complete for
    * @return the matching Enum values
    */
-  public static List<String> completeEnum(String argument, Class<? extends Enum<?>> enumClazz) {
+  public static @NotNull List<String> completeEnum(
+      @NotNull String argument,
+      @NotNull Class<? extends Enum<?>> enumClazz
+  ) {
     argument = argument.toLowerCase(Locale.ENGLISH);
     List<String> completions = new ArrayList<>();
 
@@ -84,7 +90,10 @@ public final class TabCompleter {
    * @param options the Strings which may be completed
    * @return the matching Strings
    */
-  public static List<String> completeString(String argument, String[] options) {
+  public static @NotNull List<String> completeString(
+      @NotNull String argument,
+      @NotNull String @NotNull [] options
+  ) {
     argument = argument.toLowerCase(Locale.ENGLISH);
     List<String> completions = new ArrayList<>();
 
@@ -104,9 +113,12 @@ public final class TabCompleter {
    * @param argument the argument to complete
    * @return the matching Players' names
    */
-  public static List<String> completeOnlinePlayer(CommandSender sender, String argument) {
+  public static List<String> completeOnlinePlayer(
+      @Nullable CommandSender sender,
+      @NotNull String argument
+  ) {
     List<String> completions = new ArrayList<>();
-    Player senderPlayer = sender instanceof Player ? (Player) sender : null;
+    Player senderPlayer = sender instanceof Player player ? player : null;
 
     for (Player player : Bukkit.getOnlinePlayers()) {
       if (senderPlayer != null && !senderPlayer.canSee(player)) {
@@ -129,7 +141,11 @@ public final class TabCompleter {
    * @param options the Objects which may be completed
    * @return the matching Strings
    */
-  public static <T> List<String> completeObject(String argument, Function<T, String> converter, T[] options) {
+  public static <T> List<String> completeObject(
+      @NotNull String argument,
+      @NotNull Function<@NotNull T, @NotNull String> converter,
+      @NotNull T @NotNull[] options
+  ) {
     argument = argument.toLowerCase(Locale.ENGLISH);
     List<String> completions = new ArrayList<>();
 

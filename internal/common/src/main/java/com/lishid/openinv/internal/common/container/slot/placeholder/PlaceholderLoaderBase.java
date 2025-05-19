@@ -25,7 +25,18 @@ import java.util.Optional;
 
 public abstract class PlaceholderLoaderBase {
 
-  protected PlaceholderLoaderBase() {
+  public void load(@Nullable ConfigurationSection section) throws Exception {
+    Placeholders.craftingOutput = parse(section, "crafting-output", defaultCraftingOutput());
+    Placeholders.cursor = parse(section, "cursor", defaultCursor());
+    Placeholders.drop = parse(section, "drop", defaultDrop());
+    Placeholders.emptyHelmet = parse(section, "empty-helmet", getEmptyArmor(Items.LEATHER_HELMET));
+    Placeholders.emptyChestplate = parse(section, "empty-chestplate", getEmptyArmor(Items.LEATHER_CHESTPLATE));
+    Placeholders.emptyLeggings = parse(section, "empty-leggings", getEmptyArmor(Items.LEATHER_LEGGINGS));
+    Placeholders.emptyBoots = parse(section, "empty-boots", getEmptyArmor(Items.LEATHER_BOOTS));
+    Placeholders.emptyOffHand = parse(section, "empty-off-hand", defaultShield());
+    Placeholders.notSlot = parse(section, "not-a-slot", defaultNotSlot());
+    Placeholders.blockedOffline = parse(section, "blocked.offline", defaultBlockedOffline());
+
     for (GameType type : GameType.values()) {
       // Barrier: "Not available - Creative" etc.
       ItemStack typeItem = new ItemStack(Items.BARRIER);
@@ -35,29 +46,7 @@ public abstract class PlaceholderLoaderBase {
       );
       Placeholders.BLOCKED_GAME_TYPE.put(type, typeItem);
     }
-    Placeholders.craftingOutput = defaultCraftingOutput();
-    Placeholders.cursor = defaultCursor();
-    Placeholders.drop = defaultDrop();
-    Placeholders.emptyHelmet = getEmptyArmor(Items.LEATHER_HELMET);
-    Placeholders.emptyChestplate = getEmptyArmor(Items.LEATHER_CHESTPLATE);
-    Placeholders.emptyLeggings = getEmptyArmor(Items.LEATHER_LEGGINGS);
-    Placeholders.emptyBoots = getEmptyArmor(Items.LEATHER_BOOTS);
-    Placeholders.emptyOffHand = defaultShield();
-    Placeholders.notSlot = defaultNotSlot();
-    Placeholders.blockedOffline = defaultBlockedOffline();
-  }
 
-  public void load(@Nullable ConfigurationSection section) throws Exception {
-    Placeholders.craftingOutput = parse(section, "crafting-output", Placeholders.craftingOutput);
-    Placeholders.cursor = parse(section, "cursor", Placeholders.cursor);
-    Placeholders.drop = parse(section, "drop", Placeholders.drop);
-    Placeholders.emptyHelmet = parse(section, "empty-helmet", Placeholders.emptyHelmet);
-    Placeholders.emptyChestplate = parse(section, "empty-chestplate", Placeholders.emptyChestplate);
-    Placeholders.emptyLeggings = parse(section, "empty-leggings", Placeholders.emptyLeggings);
-    Placeholders.emptyBoots = parse(section, "empty-boots", Placeholders.emptyBoots);
-    Placeholders.emptyOffHand = parse(section, "empty-off-hand", Placeholders.emptyOffHand);
-    Placeholders.notSlot = parse(section, "not-a-slot", Placeholders.notSlot);
-    Placeholders.blockedOffline = parse(section, "blocked.offline", Placeholders.blockedOffline);
     Placeholders.BLOCKED_GAME_TYPE.put(GameType.CREATIVE, parse(section, "blocked.creative", Placeholders.BLOCKED_GAME_TYPE.get(GameType.CREATIVE)));
     Placeholders.BLOCKED_GAME_TYPE.put(GameType.SPECTATOR, parse(section, "blocked.spectator", Placeholders.BLOCKED_GAME_TYPE.get(GameType.SPECTATOR)));
   }
