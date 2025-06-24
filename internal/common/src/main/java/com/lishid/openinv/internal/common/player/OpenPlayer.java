@@ -9,13 +9,17 @@ import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.PlayerDataStorage;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.slf4j.Logger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,10 +30,10 @@ public class OpenPlayer extends CraftPlayer {
   /**
    * List of tags to always reset when saving.
    *
-   * @see net.minecraft.world.entity.Entity#saveWithoutId(CompoundTag)
-   * @see net.minecraft.server.level.ServerPlayer#addAdditionalSaveData(CompoundTag)
-   * @see net.minecraft.world.entity.player.Player#addAdditionalSaveData(CompoundTag)
-   * @see net.minecraft.world.entity.LivingEntity#addAdditionalSaveData(CompoundTag)
+   * @see net.minecraft.world.entity.Entity#saveWithoutId(ValueOutput)
+   * @see net.minecraft.server.level.ServerPlayer#addAdditionalSaveData(ValueOutput)
+   * @see net.minecraft.world.entity.player.Player#addAdditionalSaveData(ValueOutput)
+   * @see net.minecraft.world.entity.LivingEntity#addAdditionalSaveData(ValueOutput)
    */
   @Unmodifiable
   protected static final Set<String> RESET_TAGS = Set.of(
@@ -83,7 +87,7 @@ public class OpenPlayer extends CraftPlayer {
 
   @Override
   public void loadData() {
-    manager.loadData(getHandle());
+    manager.loadData(server.getServer(), getHandle());
   }
 
   @Override
@@ -93,14 +97,18 @@ public class OpenPlayer extends CraftPlayer {
     }
 
     ServerPlayer player = this.getHandle();
+    Logger logger = LogUtils.getLogger();
     // See net.minecraft.world.level.storage.PlayerDataStorage#save(EntityHuman)
-    try {
-      PlayerDataStorage worldNBTStorage = player.server.getPlayerList().playerIo;
+    try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(player.problemPath(), logger)) {
+      PlayerDataStorage worldNBTStorage = server.getServer().getPlayerList().playerIo;
 
-      CompoundTag oldData = isOnline() ? null : worldNBTStorage.load(player.getName().getString(), player.getStringUUID()).orElse(null);
+      CompoundTag oldData = isOnline()
+          ? null
+          : worldNBTStorage.load(player.getName().getString(), player.getStringUUID(), scopedCollector).orElse(null);
       CompoundTag playerData = getWritableTag(oldData);
-      playerData = player.saveWithoutId(playerData);
-      setExtraData(playerData);
+
+      ValueOutput valueOutput = TagValueOutput.createWrappingWithContext(scopedCollector, player.registryAccess(), playerData);
+      player.saveWithoutId(valueOutput);
 
       if (oldData != null) {
         // Revert certain special data values when offline.
@@ -137,7 +145,7 @@ public class OpenPlayer extends CraftPlayer {
     return oldData;
   }
 
-  private void revertSpecialValues(@NotNull CompoundTag newData, @NotNull CompoundTag oldData) {
+  protected void revertSpecialValues(@NotNull CompoundTag newData, @NotNull CompoundTag oldData) {
     // Revert automatic updates to play timestamps.
     copyValue(oldData, newData, "bukkit", "lastPlayed", NumericTag.class);
     copyValue(oldData, newData, "Paper", "LastSeen", NumericTag.class);
