@@ -88,7 +88,7 @@ public class PlayerManager implements com.lishid.openinv.internal.PlayerManager 
     entity.getAdvancements().stopListening();
 
     // Try to load the player's data.
-    if (loadData(server, entity)) {
+    if (loadData(entity)) {
       // If data is loaded successfully, return the Bukkit entity.
       return entity.getBukkitEntity();
     }
@@ -134,7 +134,7 @@ public class PlayerManager implements com.lishid.openinv.internal.PlayerManager 
     return entity;
   }
 
-  boolean loadData(@NotNull MinecraftServer server, @NotNull ServerPlayer player) {
+  boolean loadData(@NotNull ServerPlayer player) {
     // See CraftPlayer#loadData
 
     try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(player.problemPath(), new JulLoggerAdapter(logger))) {
