@@ -84,7 +84,8 @@ public class InternalAccessor {
     }
 
     // Paper or a Paper fork, can use Mojang-mapped internals.
-    if (BukkitVersions.MINECRAFT.equals(maxSupported)) { // 1.21.6, 1.21.7
+    if (BukkitVersions.MINECRAFT.lessThanOrEqual(maxSupported)
+        && BukkitVersions.MINECRAFT.greaterThanOrEqual(Version.of(1, 21, 6))) { // 1.21.6, 1.21.7
       return new com.lishid.openinv.internal.common.InternalAccessor(logger, lang);
     }
     if (BukkitVersions.MINECRAFT.equals(Version.of(1, 21, 5))) { // 1.21.5
